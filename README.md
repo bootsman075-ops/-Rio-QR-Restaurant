@@ -9,7 +9,7 @@ Beheerportaal voor restaurants met tafelbeheer, reserveringen, gastnamen, een di
 - [Next.js](https://nextjs.org) 16 (App Router), React 19
 - TypeScript
 - Tailwind CSS 4
-- [Supabase](https://supabase.com) (database, authenticatie) — wordt gekoppeld in een volgende fase
+- [Supabase](https://supabase.com) (database, authenticatie) via `@supabase/supabase-js` en `@supabase/ssr`
 
 ## Aan de slag
 
@@ -51,17 +51,46 @@ src/
   components/
     ui/             Herbruikbare UI-componenten
   lib/              Hulpfuncties en configuratie (site.ts)
-    supabase/       Supabase-clients (volgt in fase 2)
-  types/            Gedeelde TypeScript-types
+    supabase/
+      client.ts     Browser-client (Client Components, RLS geldt)
+      server.ts     Server-client met cookies (namens ingelogde gebruiker, RLS geldt)
+      admin.ts      Server-only client met secret key (omzeilt RLS)
+      env.ts        Uitlezen en valideren van omgevingsvariabelen
+  types/
+    database.ts     Databasetypes (later te genereren met de Supabase CLI)
+    models.ts       Leesbare aliassen: Restaurant, RestaurantTable, MenuItem, ...
 supabase/
   migrations/       SQL-migraties voor het databaseschema
+  seed.sql          Pilotdata: Rio Deventer met 25 tafels en QR-tokens
 public/             Statische bestanden
 ```
+
+## Datamodel
+
+Alle tabellen hangen via `restaurant_id` aan een restaurant, zodat meerdere restaurants naast elkaar kunnen bestaan. Samengestelde foreign keys voorkomen dat bijvoorbeeld een QR-token of reservering naar een tafel van een ander restaurant verwijst.
+
+| Tabel           | Inhoud                                                                   |
+| --------------- | ------------------------------------------------------------------------ |
+| `restaurants`   | Restaurant (slug, naam, plaats, tijdzone)                                |
+| `tables`        | Tafels; `number` uniek per restaurant, optioneel label, stoelen, zone    |
+| `qr_tokens`     | Vervangbare QR-tokens; max. één actief per tafel, oude worden ingetrokken |
+| `menu_sections` | Rubrieken van de menukaart, met volgorde en zichtbaarheid                |
+| `menu_items`    | Gerechten/dranken; prijs in centen, allergenen, labels, beschikbaarheid  |
+| `reservations`  | Reserveringen met gastnaam, aantal personen, tijd, status, optioneel tafel |
+
+Een QR-code bevat alleen een willekeurige token, nooit het tafel-ID. Met de databasefunctie `rotate_qr_token(table_id)` wordt de oude token ingetrokken en een nieuwe aangemaakt.
+
+Row Level Security staat aan op alle tabellen, nog zonder policies: tot de authenticatie er is, heeft alleen de server (met de secret key) toegang.
+
+### Database opzetten
+
+De migraties in `supabase/migrations/` in volgorde uitvoeren, daarna `supabase/seed.sql` voor de pilotdata. Dit kan via de Supabase CLI (`supabase db push`) of door de bestanden in de SQL Editor van het Supabase-dashboard te plakken. De seed kan veilig vaker gedraaid worden.
 
 ## Fases
 
 1. **Projectbasis** — Next.js, TypeScript, Tailwind, structuur en documentatie ✅
-2. Supabase-koppeling, databaseschema en authenticatie
+2. **A** — Supabase-clients, databaseschema, migraties en types ✅
+   **B** — Koppeling met een echt Supabase-project, migraties uitvoeren, authenticatie
 3. Tafelbeheer en QR-codes (vervangbaar per tafel)
 4. Digitale menukaart (gastweergave via QR)
 5. Reserveringen en gastnamen

@@ -22,9 +22,18 @@ MVP voor een horeca-beheerportaal: tafels, reserveringen, gastnamen, digitale me
 
 - `src/app` — routes; gebruik route groups `(naam)` om bv. admin- en gastgedeelte te scheiden
 - `src/components/ui` — herbruikbare componenten
-- `src/lib` — hulpfuncties en config; `src/lib/supabase` voor clients
-- `src/types` — gedeelde types
-- `supabase/migrations` — SQL-migraties; schemawijzigingen altijd via een migratie
+- `src/lib` — hulpfuncties en config
+- `src/lib/supabase` — `client.ts` (browser), `server.ts` (server, cookies, async), `admin.ts` (secret key, omzeilt RLS; alleen voor vertrouwde servercode en altijd zelf op `restaurant_id` filteren)
+- `src/types/database.ts` — databasetypes; bij elke schemawijziging bijwerken (of regenereren met `supabase gen types`). Gebruik `type`, geen `interface`
+- `src/types/models.ts` — aliassen zoals `Restaurant`, `RestaurantTable`
+- `supabase/migrations` — SQL-migraties (`YYYYMMDDHHMMSS_naam.sql`); schemawijzigingen altijd via een nieuwe migratie, bestaande migraties niet aanpassen nadat ze zijn uitgevoerd
+- `supabase/seed.sql` — idempotente pilotdata (Rio Deventer, 25 tafels)
+
+## Datamodel-regels
+
+- Multi-tenant: elke tabel heeft `restaurant_id`. Kindtabellen verwijzen via samengestelde FK `(restaurant_id, x_id)` zodat relaties binnen één restaurant blijven.
+- Prijzen in centen (`price_cents`), tijden als `timestamptz`.
+- QR-codes bevatten een token uit `qr_tokens`; vervangen via `rotate_qr_token(table_id)`.
 
 ## Beveiliging
 
