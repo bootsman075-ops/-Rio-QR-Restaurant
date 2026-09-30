@@ -88,27 +88,39 @@ Row Level Security staat aan op alle tabellen, nog zonder policies: tot de authe
 
 De migraties in `supabase/migrations/` in volgorde uitvoeren, daarna `supabase/seed.sql` voor de pilotdata. Dit kan via de Supabase CLI (`supabase db push`) of door de bestanden in de SQL Editor van het Supabase-dashboard te plakken. De seed kan veilig vaker gedraaid worden.
 
-## Personeelsdashboard
+## Personeel en Management
 
-Inloggen via `/staff/login`. Er zijn twee rollen, bepaald door het wachtwoord:
+Er zijn twee volledig gescheiden omgevingen, elk met een eigen login, eigen sessie-cookie en eigen dashboard. De gedeelde schermen staan in `src/components/dashboard/`; de routes in `src/app/staff` en `src/app/management` zijn dun en controleren zelf het recht.
 
-- **Personeel** — `STAFF_DASHBOARD_PASSWORD`: de dagelijkse operationele functies.
-- **Management** — `MANAGER_DASHBOARD_PASSWORD` (optioneel; moet verschillen van het personeelswachtwoord): alles inzien en aanpassen.
+| Omgeving   | Login               | Wachtwoord                   | Sessie-cookie         | Dashboard     |
+| ---------- | ------------------- | ---------------------------- | --------------------- | ------------- |
+| Personeel  | `/staff/login`      | `STAFF_DASHBOARD_PASSWORD`   | `rio_staff_session`   | `/staff`      |
+| Management | `/management/login` | `MANAGER_DASHBOARD_PASSWORD` | `rio_management_session` | `/management` |
 
-De rol staat rechtsboven in het dashboard ("Ingelogd als Personeel/Management"), met een knop om uit te loggen. Het menu bovenaan toont alleen de onderdelen waar de gebruiker recht op heeft:
+- Elke login accepteert alleen het eigen wachtwoord. Inloggen in de ene omgeving beëindigt een sessie van de andere rol in dezelfde browser.
+- De twee wachtwoorden moeten verschillen; zijn ze gelijk, dan weigeren beide logins ("niet correct geconfigureerd").
+- Sessietokens zijn versie-gebonden (`src/lib/staff-auth.ts`). Sessies uit eerdere versies, waaronder de oude gedeelde login en de cookie `rio_manager_session`, zijn ongeldig: iedereen logt na die wijziging één keer opnieuw in. Een versielabel ophogen dwingt dat opnieuw af voor die rol.
+- Een personeelssessie geeft nooit toegang tot `/management`; personeel wordt dan server-side teruggestuurd naar `/staff`.
+- Een managementsessie mag ook alle personeelsfuncties gebruiken (ook via `/staff`).
+- Rechtsboven staat "Ingelogd als Personeel" of "Ingelogd als Management", met een knop om uit te loggen.
 
-- **Tafelverzoeken** (`/staff`) — live meldingen "Bediening roepen" en "Rekening aanvragen".
-- **Reserveringen** (`/staff/reserveringen`) — reserveringen bekijken, toevoegen, wijzigen, status aanpassen en annuleren; filteren op datum en status. Gebruikt de bestaande tabel `reservations`; datum en tijd worden in de tijdzone van het restaurant ingevoerd en getoond.
-- **Menu beheren** (`/staff/menu`) — alleen management; wijzigingen zijn direct zichtbaar op de menukaart voor gasten.
+Routes:
+
+- **Personeel:** `/staff` (tafelverzoeken: "Bediening roepen" en "Rekening aanvragen"), `/staff/reserveringen`.
+- **Management:** `/management` (overzicht met cijfers van vandaag), `/management/tafelverzoeken`, `/management/reserveringen`, `/management/menu`. Het oude adres `/staff/menu` verwijst door naar `/management/menu`.
+- Nieuwe beheeronderdelen: voeg de route toe onder `src/app/management/`, een recht in `src/lib/permissions.ts` en een menu-item in `src/components/dashboard/areas.ts`.
+
+Reserveringen worden ingevoerd en getoond in de tijdzone van het restaurant (bestaande tabel `reservations`).
 
 | Recht (`src/lib/permissions.ts`) | Wat                                                        | Personeel | Management |
 | -------------------------------- | ---------------------------------------------------------- | :-------: | :--------: |
 | `requests.handle`                | Tafel- en rekeningverzoeken bekijken en afhandelen         | ✓         | ✓          |
 | `reservations.manage`            | Reserveringen bekijken, toevoegen, wijzigen, status, annuleren | ✓     | ✓          |
 | `reservations.delete`            | Geannuleerde reserveringen definitief verwijderen          |           | ✓          |
-| `menu.manage`                    | Volledig menubeheer: gerechten, prijzen, afbeeldingen, allergenen, beschikbaarheid, volgorde, categorieën |  | ✓ |
+| `management.access`              | De omgeving `/management`                                  |           | ✓          |
+| `menu.manage`                    | Volledig menubeheer: gerechten, prijzen, afbeeldingen, allergenen, kenmerken, beschikbaarheid, volgorde, categorieën |  | ✓ |
 
-Management heeft automatisch álle rechten, ook rechten die later worden toegevoegd. Elke pagina en elke Server Action controleert het recht op de server met `requirePermission()`; knoppen verbergen is alleen voor het gemak.
+Management heeft automatisch álle rechten, ook rechten die later worden toegevoegd. Elke pagina, route handler en Server Action controleert het recht op de server met `requirePermission()`; knoppen verbergen is alleen voor het gemak.
 
 Afbeeldingen worden in de browser verkleind (max. 1600 px) en opgeslagen in de Supabase Storage-bucket `menu-images` (migratie `20261001120000_menu_images_bucket.sql`).
 

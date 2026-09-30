@@ -1,26 +1,17 @@
 import Link from "next/link";
 
-import { logout } from "./session-actions";
-import { ROLE_LABELS, can } from "@/lib/permissions";
-import type { Permission } from "@/lib/permissions";
+import { DASHBOARD_NAV } from "./areas";
+import type { DashboardArea, DashboardSection } from "./areas";
+import { logout } from "./auth-actions";
+import { ROLE_LABELS } from "@/lib/permissions";
 import { getStaffRole } from "@/lib/staff-session";
 
-type StaffNavProps = {
-  current: "requests" | "reservations" | "menu";
+type DashboardNavProps = {
+  area: DashboardArea;
+  current: DashboardSection;
 };
 
-const items: {
-  key: StaffNavProps["current"];
-  href: string;
-  label: string;
-  permission: Permission;
-}[] = [
-  { key: "requests", href: "/staff", label: "Tafelverzoeken", permission: "requests.handle" },
-  { key: "reservations", href: "/staff/reserveringen", label: "Reserveringen", permission: "reservations.manage" },
-  { key: "menu", href: "/staff/menu", label: "Menu beheren", permission: "menu.manage" },
-];
-
-export default async function StaffNav({ current }: StaffNavProps) {
+export default async function DashboardNav({ area, current }: DashboardNavProps) {
   const role = await getStaffRole();
 
   return (
@@ -106,19 +97,20 @@ export default async function StaffNav({ current }: StaffNavProps) {
       `}</style>
 
       <div className="staff-nav-bar">
-        <nav className="staff-nav" aria-label="Personeelsmenu">
-          {items
-            .filter((item) => can(role, item.permission))
-            .map((item) => (
-              <Link
-                key={item.key}
-                href={item.href}
-                className="staff-nav-link"
-                aria-current={item.key === current ? "page" : undefined}
-              >
-                {item.label}
-              </Link>
-            ))}
+        <nav
+          className="staff-nav"
+          aria-label={area === "management" ? "Managementmenu" : "Personeelsmenu"}
+        >
+          {DASHBOARD_NAV[area].map((item) => (
+            <Link
+              key={item.key}
+              href={item.href}
+              className="staff-nav-link"
+              aria-current={item.key === current ? "page" : undefined}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
         {role && (

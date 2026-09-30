@@ -1,34 +1,42 @@
 import "server-only";
 import { cookies } from "next/headers";
 import {
-  MANAGER_COOKIE_NAME,
+  MANAGEMENT_COOKIE_NAME,
   STAFF_COOKIE_NAME,
-  getManagerSessionToken,
+  getManagementSessionToken,
   getStaffSessionToken,
 } from "@/lib/staff-auth";
 
 export type StaffRole = "manager" | "staff";
 
 /**
- * Role of the current visitor: "manager" when both the staff and manager
- * cookies are valid, "staff" with only the staff cookie, otherwise null.
+ * Role of the current visitor, from two independent session cookies:
+ * a valid management cookie → "manager", otherwise a valid staff cookie →
+ * "staff", otherwise null. A staff cookie never grants management, and
+ * cookies from earlier versions (old token labels, rio_manager_session)
+ * are never accepted.
  * Use requirePermission() from "@/lib/permissions" to guard pages and actions.
  */
 export async function getStaffRole(): Promise<StaffRole | null> {
   const cookieStore = await cookies();
-  const expectedSession = getStaffSessionToken();
+
+  const expectedManagement = getManagementSessionToken();
 
   if (
-    !expectedSession ||
-    cookieStore.get(STAFF_COOKIE_NAME)?.value !== expectedSession
+    expectedManagement &&
+    cookieStore.get(MANAGEMENT_COOKIE_NAME)?.value === expectedManagement
   ) {
-    return null;
+    return "manager";
   }
 
-  const expectedManager = getManagerSessionToken();
+  const expectedStaff = getStaffSessionToken();
 
-  return expectedManager &&
-    cookieStore.get(MANAGER_COOKIE_NAME)?.value === expectedManager
-    ? "manager"
-    : "staff";
+  if (
+    expectedStaff &&
+    cookieStore.get(STAFF_COOKIE_NAME)?.value === expectedStaff
+  ) {
+    return "staff";
+  }
+
+  return null;
 }

@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { DASHBOARD_PATHS } from "../areas";
 import { requirePermission } from "@/lib/permissions";
+import type { StaffRole } from "@/lib/staff-session";
 import {
   PILOT_RESTAURANT_SLUG,
   isReservationStatus,
@@ -14,7 +16,23 @@ import {
 } from "@/lib/reservations";
 import type { ReservationStatus } from "@/lib/reservations";
 
-const BASE_PATH = "/staff/reserveringen";
+const RESERVATION_PATHS = [
+  DASHBOARD_PATHS.staff.reservations,
+  DASHBOARD_PATHS.management.reservations,
+];
+
+/** Reservations page of the environment the user belongs to. */
+function basePathFor(role: StaffRole) {
+  return role === "manager"
+    ? DASHBOARD_PATHS.management.reservations
+    : DASHBOARD_PATHS.staff.reservations;
+}
+
+function revalidateReservations() {
+  for (const path of RESERVATION_PATHS) {
+    revalidatePath(path);
+  }
+}
 
 export type ReservationFormValues = {
   guest_name: string;
@@ -33,7 +51,7 @@ export type ReservationFormState = {
 };
 
 async function assertStaff() {
-  await requirePermission("reservations.manage");
+  return requirePermission("reservations.manage");
 }
 
 async function getPilotRestaurant() {
@@ -52,13 +70,13 @@ async function getPilotRestaurant() {
   return { supabase, restaurant: data };
 }
 
-/** Only allows redirects back into the reservations page. */
-function safeReturnPath(value: FormDataEntryValue | null) {
+/** Only allows redirects back into one of the reservations pages. */
+function safeReturnPath(value: FormDataEntryValue | null, role: StaffRole) {
   const path = typeof value === "string" ? value : "";
 
-  return path === BASE_PATH || path.startsWith(`${BASE_PATH}?`)
+  return RESERVATION_PATHS.some((base) => path === base || path.startsWith(`${base}?`))
     ? path
-    : BASE_PATH;
+    : basePathFor(role);
 }
 
 function readValues(formData: FormData): ReservationFormValues {
@@ -121,7 +139,7 @@ async function saveReservation(
   reservationId: string | null,
   formData: FormData,
 ): Promise<ReservationFormState> {
-  await assertStaff();
+  const role = await assertStaff();
 
   const values = readValues(formData);
   const validationError = validate(values);
@@ -188,9 +206,9 @@ async function saveReservation(
     }
   }
 
-  revalidatePath(BASE_PATH);
+  revalidateReservations();
   redirect(
-    `${BASE_PATH}?datum=${values.date}&ok=${reservationId ? "gewijzigd" : "toegevoegd"}`,
+    `${basePathFor(role)}?datum=${values.date}&ok=${reservationId ? "gewijzigd" : "toegevoegd"}`,
   );
 }
 
@@ -215,11 +233,11 @@ export async function updateReservation(
 }
 
 export async function setReservationStatus(formData: FormData) {
-  await assertStaff();
+  const role = await assertStaff();
 
   const reservationId = String(formData.get("reservation_id") ?? "");
   const status = String(formData.get("status") ?? "");
-  const returnPath = safeReturnPath(formData.get("return_to"));
+  const returnPath = safeReturnPath(formData.get("return_to"), role);
 
   if (!reservationId || !isReservationStatus(status)) {
     redirect(returnPath);
@@ -237,15 +255,14 @@ export async function setReservationStatus(formData: FormData) {
     throw new Error(error.message);
   }
 
-  revalidatePath(BASE_PATH);
+  revalidateReservations();
   redirect(returnPath);
 }
 
 /** Management only; only cancelled reservations can be deleted. */
 export async function deleteReservation(formData: FormData) {
-  const returnPath = safeReturnPath(formData.get("return_to"));
-
-  await requirePermission("reservations.delete", returnPath);
+  const role = await requirePermission("reservations.delete");
+  const returnPath = safeReturnPath(formData.get("return_to"), role);
 
   const reservationId = String(formData.get("reservation_id") ?? "");
 
@@ -266,6 +283,6 @@ export async function deleteReservation(formData: FormData) {
     throw new Error(error.message);
   }
 
-  revalidatePath(BASE_PATH);
+  revalidateReservations();
   redirect(returnPath);
 }

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { DASHBOARD_PATHS } from "../areas";
 import { requirePermission } from "@/lib/permissions";
 import { PILOT_RESTAURANT_SLUG } from "@/lib/reservations";
 import {
@@ -17,7 +18,7 @@ import {
   storagePathFromUrl,
 } from "@/lib/menu";
 
-const BASE_PATH = "/staff/menu";
+const BASE_PATH = DASHBOARD_PATHS.management.menu;
 
 export type MenuItemFormValues = {
   name: string;
@@ -46,7 +47,7 @@ export type SectionFormState = {
 
 /** Every menu change requires the management permission. */
 async function requireMenuPermission() {
-  await requirePermission("menu.manage", BASE_PATH);
+  await requirePermission("menu.manage");
 }
 
 async function getPilotRestaurant() {

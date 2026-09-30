@@ -4,12 +4,12 @@ import { requirePermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-export default async function StaffReservationsPage({
+export default async function ManagementReservationsPage({
   searchParams,
 }: {
   searchParams: Promise<ReservationsSearchParams>;
 }) {
-  const role = await requirePermission("reservations.manage");
+  const role = await requirePermission("management.access");
 
-  return <ReservationsView area="staff" role={role} params={await searchParams} />;
+  return <ReservationsView area="management" role={role} params={await searchParams} />;
 }

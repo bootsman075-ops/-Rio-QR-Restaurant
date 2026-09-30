@@ -1,22 +1,14 @@
-﻿import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-import {
-  STAFF_COOKIE_NAME,
-  getStaffSessionToken,
-} from "@/lib/staff-auth";
+import { can } from "@/lib/permissions";
+import { getStaffRole } from "@/lib/staff-session";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const expectedSession = getStaffSessionToken();
-
-  if (
-    !expectedSession ||
-    cookieStore.get(STAFF_COOKIE_NAME)?.value !== expectedSession
-  ) {
+  // Staff and management sessions both see table requests.
+  if (!can(await getStaffRole(), "requests.handle")) {
     return NextResponse.json(
       { error: "Niet ingelogd" },
       { status: 401 }

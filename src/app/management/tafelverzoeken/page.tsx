@@ -3,8 +3,8 @@ import { requirePermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-export default async function StaffPage() {
-  await requirePermission("requests.handle");
+export default async function ManagementRequestsPage() {
+  await requirePermission("management.access");
 
-  return <RequestsView area="staff" />;
+  return <RequestsView area="management" />;
 }

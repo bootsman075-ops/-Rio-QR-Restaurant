@@ -12,7 +12,8 @@ export type Permission =
   | "requests.handle" // table service and bill requests
   | "reservations.manage" // view, add, edit, change status, cancel
   | "reservations.delete"
-  | "menu.manage"; // dishes, prices, images, allergens, availability, order, categories
+  | "management.access" // the /management environment
+  | "menu.manage"; // dishes, prices, images, allergens, tags, availability, order, categories
 
 /** Daily operational permissions for regular staff. */
 const STAFF_PERMISSIONS: readonly Permission[] = [
@@ -34,21 +35,21 @@ export function can(role: StaffRole | null, permission: Permission) {
 }
 
 /**
- * Server-side guard for pages and Server Actions: sends visitors without a
- * session to the login page and users without the permission to deniedPath.
+ * Server-side guard for pages, route handlers and Server Actions.
+ * - No session: redirect to the staff login, or to the management login for
+ *   management-only permissions.
+ * - Session without the permission (staff on a management function):
+ *   redirect to /staff.
  */
-export async function requirePermission(
-  permission: Permission,
-  deniedPath = "/staff",
-) {
+export async function requirePermission(permission: Permission) {
   const role = await getStaffRole();
 
   if (!role) {
-    redirect("/staff/login");
+    redirect(STAFF_PERMISSIONS.includes(permission) ? "/staff/login" : "/management/login");
   }
 
   if (!can(role, permission)) {
-    redirect(deniedPath);
+    redirect("/staff");
   }
 
   return role;

@@ -245,6 +245,51 @@ export type Database = {
         }
         Relationships: []
       }
+      service_requests: {
+        Row: {
+          created_at: string
+          handled_at: string | null
+          id: string
+          request_type: string
+          restaurant_id: string
+          status: string
+          table_id: string
+        }
+        Insert: {
+          created_at?: string
+          handled_at?: string | null
+          id?: string
+          request_type: string
+          restaurant_id: string
+          status?: string
+          table_id: string
+        }
+        Update: {
+          created_at?: string
+          handled_at?: string | null
+          id?: string
+          request_type?: string
+          restaurant_id?: string
+          status?: string
+          table_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_restaurant_id_table_id_fkey"
+            columns: ["restaurant_id", "table_id"]
+            isOneToOne: false
+            referencedRelation: "tables"
+            referencedColumns: ["restaurant_id", "id"]
+          },
+        ]
+      }
       tables: {
         Row: {
           area: string | null
