@@ -42,6 +42,8 @@ Zie `.env.example`. Echte waarden horen alleen in `.env.local`, dat niet in git 
 | `NEXT_PUBLIC_SUPABASE_URL`             | Browser + server         |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser + server         |
 | `SUPABASE_SECRET_KEY`                  | Alleen server-side       |
+| `STAFF_DASHBOARD_PASSWORD`             | Login personeel          |
+| `MANAGER_DASHBOARD_PASSWORD`           | Login manager (optioneel) |
 
 ## Projectstructuur
 
@@ -88,10 +90,26 @@ De migraties in `supabase/migrations/` in volgorde uitvoeren, daarna `supabase/s
 
 ## Personeelsdashboard
 
-Inloggen via `/staff/login` met `STAFF_DASHBOARD_PASSWORD`. Het menu bovenaan heeft twee onderdelen:
+Inloggen via `/staff/login`. Er zijn twee rollen, bepaald door het wachtwoord:
+
+- **Personeel** — `STAFF_DASHBOARD_PASSWORD`
+- **Manager** — `MANAGER_DASHBOARD_PASSWORD` (optioneel; moet verschillen van het personeelswachtwoord). Een manager kan alles wat personeel kan, plus volledig menubeheer.
+
+Het menu bovenaan heeft drie onderdelen:
 
 - **Tafelverzoeken** (`/staff`) — live meldingen "Bediening roepen" en "Rekening aanvragen".
 - **Reserveringen** (`/staff/reserveringen`) — reserveringen bekijken, toevoegen, wijzigen, status aanpassen en annuleren; filteren op datum en status. Gebruikt de bestaande tabel `reservations`; datum en tijd worden in de tijdzone van het restaurant ingevoerd en getoond.
+- **Menu beheren** (`/staff/menu`) — wijzigingen zijn direct zichtbaar op de menukaart voor gasten.
+
+| Actie                                             | Personeel | Manager |
+| ------------------------------------------------- | :-------: | :-----: |
+| Gerecht wijzigen (naam, omschrijving, prijs, categorie, afbeelding) | ✓ | ✓ |
+| Niet beschikbaar / weer beschikbaar               | ✓         | ✓       |
+| Gerecht toevoegen of verwijderen                  |           | ✓       |
+| Volgorde binnen een categorie aanpassen           |           | ✓       |
+| Categorie toevoegen, hernoemen, verbergen, verwijderen (alleen als leeg) | | ✓ |
+
+Afbeeldingen worden in de browser verkleind (max. 1600 px) en opgeslagen in de Supabase Storage-bucket `menu-images` (migratie `20261001120000_menu_images_bucket.sql`).
 
 | Status in de app | Waarde in de database |
 | ---------------- | --------------------- |

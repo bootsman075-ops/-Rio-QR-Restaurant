@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 type StaffNavProps = {
-  current: "requests" | "reservations";
+  current: "requests" | "reservations" | "menu";
 };
 
 const items = [
   { key: "requests", href: "/staff", label: "Tafelverzoeken" },
   { key: "reservations", href: "/staff/reserveringen", label: "Reserveringen" },
+  { key: "menu", href: "/staff/menu", label: "Menu beheren" },
 ] as const;
 
 export default function StaffNav({ current }: StaffNavProps) {

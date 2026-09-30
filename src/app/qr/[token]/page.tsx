@@ -116,7 +116,7 @@ export default async function QrTablePage({ params }: PageProps) {
   const { data: items } = await supabase
     .from("menu_items")
     .select(
-      "id, section_id, name, description, price_cents, sort_order, is_available"
+      "id, section_id, name, description, price_cents, sort_order, is_available, image_url"
     )
     .eq("restaurant_id", table.restaurant_id)
     .eq("is_visible", true)
@@ -366,6 +366,16 @@ export default async function QrTablePage({ params }: PageProps) {
           min-width: 0;
         }
 
+        .dish-image {
+          grid-column: 1 / -1;
+          display: block;
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          object-fit: cover;
+          border-radius: 14px;
+          background: var(--cream-dark);
+        }
+
         .dish-name {
           margin: 0;
           font-size: 18px;
@@ -567,6 +577,16 @@ export default async function QrTablePage({ params }: PageProps) {
                   <div className="dish-list">
                     {sectionItems.map((item) => (
                       <article className="dish" key={item.id}>
+                        {item.image_url && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            className="dish-image"
+                            src={item.image_url}
+                            alt={item.name}
+                            loading="lazy"
+                          />
+                        )}
+
                         <div className="dish-main">
                           <h4 className="dish-name">
                             {item.name}

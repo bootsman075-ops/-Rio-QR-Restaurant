@@ -2,8 +2,11 @@
 import { redirect } from "next/navigation";
 
 import {
+  MANAGER_COOKIE_NAME,
   STAFF_COOKIE_NAME,
+  getManagerSessionToken,
   getStaffSessionToken,
+  isValidManagerPassword,
   isValidStaffPassword,
 } from "@/lib/staff-auth";
 
@@ -18,7 +21,9 @@ async function login(formData: FormData) {
 
   const password = String(formData.get("password") ?? "");
 
-  if (!isValidStaffPassword(password)) {
+  const isManager = isValidManagerPassword(password);
+
+  if (!isManager && !isValidStaffPassword(password)) {
     redirect("/staff/login?error=1");
   }
 
@@ -30,13 +35,23 @@ async function login(formData: FormData) {
 
   const cookieStore = await cookies();
 
-  cookieStore.set(STAFF_COOKIE_NAME, token, {
+  const cookieOptions = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60 * 12,
-  });
+  };
+
+  cookieStore.set(STAFF_COOKIE_NAME, token, cookieOptions);
+
+  const managerToken = isManager ? getManagerSessionToken() : null;
+
+  if (managerToken) {
+    cookieStore.set(MANAGER_COOKIE_NAME, managerToken, cookieOptions);
+  } else {
+    cookieStore.delete(MANAGER_COOKIE_NAME);
+  }
 
   redirect("/staff");
 }
