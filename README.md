@@ -92,22 +92,23 @@ De migraties in `supabase/migrations/` in volgorde uitvoeren, daarna `supabase/s
 
 Inloggen via `/staff/login`. Er zijn twee rollen, bepaald door het wachtwoord:
 
-- **Personeel** — `STAFF_DASHBOARD_PASSWORD`
-- **Manager** — `MANAGER_DASHBOARD_PASSWORD` (optioneel; moet verschillen van het personeelswachtwoord). Een manager kan alles wat personeel kan, plus volledig menubeheer.
+- **Personeel** — `STAFF_DASHBOARD_PASSWORD`: de dagelijkse operationele functies.
+- **Management** — `MANAGER_DASHBOARD_PASSWORD` (optioneel; moet verschillen van het personeelswachtwoord): alles inzien en aanpassen.
 
-Het menu bovenaan heeft drie onderdelen:
+De rol staat rechtsboven in het dashboard ("Ingelogd als Personeel/Management"), met een knop om uit te loggen. Het menu bovenaan toont alleen de onderdelen waar de gebruiker recht op heeft:
 
 - **Tafelverzoeken** (`/staff`) — live meldingen "Bediening roepen" en "Rekening aanvragen".
 - **Reserveringen** (`/staff/reserveringen`) — reserveringen bekijken, toevoegen, wijzigen, status aanpassen en annuleren; filteren op datum en status. Gebruikt de bestaande tabel `reservations`; datum en tijd worden in de tijdzone van het restaurant ingevoerd en getoond.
-- **Menu beheren** (`/staff/menu`) — wijzigingen zijn direct zichtbaar op de menukaart voor gasten.
+- **Menu beheren** (`/staff/menu`) — alleen management; wijzigingen zijn direct zichtbaar op de menukaart voor gasten.
 
-| Actie                                             | Personeel | Manager |
-| ------------------------------------------------- | :-------: | :-----: |
-| Gerecht wijzigen (naam, omschrijving, prijs, categorie, afbeelding) | ✓ | ✓ |
-| Niet beschikbaar / weer beschikbaar               | ✓         | ✓       |
-| Gerecht toevoegen of verwijderen                  |           | ✓       |
-| Volgorde binnen een categorie aanpassen           |           | ✓       |
-| Categorie toevoegen, hernoemen, verbergen, verwijderen (alleen als leeg) | | ✓ |
+| Recht (`src/lib/permissions.ts`) | Wat                                                        | Personeel | Management |
+| -------------------------------- | ---------------------------------------------------------- | :-------: | :--------: |
+| `requests.handle`                | Tafel- en rekeningverzoeken bekijken en afhandelen         | ✓         | ✓          |
+| `reservations.manage`            | Reserveringen bekijken, toevoegen, wijzigen, status, annuleren | ✓     | ✓          |
+| `reservations.delete`            | Geannuleerde reserveringen definitief verwijderen          |           | ✓          |
+| `menu.manage`                    | Volledig menubeheer: gerechten, prijzen, afbeeldingen, allergenen, beschikbaarheid, volgorde, categorieën |  | ✓ |
+
+Management heeft automatisch álle rechten, ook rechten die later worden toegevoegd. Elke pagina en elke Server Action controleert het recht op de server met `requirePermission()`; knoppen verbergen is alleen voor het gemak.
 
 Afbeeldingen worden in de browser verkleind (max. 1600 px) en opgeslagen in de Supabase Storage-bucket `menu-images` (migratie `20261001120000_menu_images_bucket.sql`).
 

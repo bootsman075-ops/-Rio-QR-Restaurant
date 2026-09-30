@@ -8,11 +8,14 @@ import {
 } from "@/lib/staff-auth";
 import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { requirePermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
 async function markRequestHandled(formData: FormData) {
   "use server";
+
+  await requirePermission("requests.handle");
 
   const requestId = String(formData.get("request_id") ?? "");
 

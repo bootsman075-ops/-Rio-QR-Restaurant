@@ -1,6 +1,5 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import {
   MANAGER_COOKIE_NAME,
   STAFF_COOKIE_NAME,
@@ -10,14 +9,10 @@ import {
 
 export type StaffRole = "manager" | "staff";
 
-/** True when the request carries a valid staff session cookie. */
-export async function hasStaffSession() {
-  return (await getStaffRole()) !== null;
-}
-
 /**
  * Role of the current visitor: "manager" when both the staff and manager
  * cookies are valid, "staff" with only the staff cookie, otherwise null.
+ * Use requirePermission() from "@/lib/permissions" to guard pages and actions.
  */
 export async function getStaffRole(): Promise<StaffRole | null> {
   const cookieStore = await cookies();
@@ -36,15 +31,4 @@ export async function getStaffRole(): Promise<StaffRole | null> {
     cookieStore.get(MANAGER_COOKIE_NAME)?.value === expectedManager
     ? "manager"
     : "staff";
-}
-
-/** Redirects to the staff login when there is no valid session. */
-export async function requireStaffSession() {
-  const role = await getStaffRole();
-
-  if (!role) {
-    redirect("/staff/login");
-  }
-
-  return role;
 }

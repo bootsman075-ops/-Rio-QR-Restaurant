@@ -1,5 +1,6 @@
 ﻿import { createClient } from "@/lib/supabase/server";
 import ServiceActions from "./ServiceActions";
+import { MENU_ALLERGENS } from "@/lib/menu";
 
 type PageProps = {
   params: Promise<{
@@ -116,7 +117,7 @@ export default async function QrTablePage({ params }: PageProps) {
   const { data: items } = await supabase
     .from("menu_items")
     .select(
-      "id, section_id, name, description, price_cents, sort_order, is_available, image_url"
+      "id, section_id, name, description, price_cents, sort_order, is_available, image_url, allergens"
     )
     .eq("restaurant_id", table.restaurant_id)
     .eq("is_visible", true)
@@ -398,6 +399,14 @@ export default async function QrTablePage({ params }: PageProps) {
           letter-spacing: -.02em;
         }
 
+        .dish-allergens {
+          margin: 8px 0 0;
+          color: var(--accent);
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1.5;
+        }
+
         .unavailable {
           display: inline-flex;
           margin-top: 12px;
@@ -595,6 +604,15 @@ export default async function QrTablePage({ params }: PageProps) {
                           {item.description && (
                             <p className="dish-description">
                               {item.description}
+                            </p>
+                          )}
+
+                          {item.allergens.length > 0 && (
+                            <p className="dish-allergens">
+                              Allergenen:{" "}
+                              {item.allergens
+                                .map((code) => MENU_ALLERGENS[code] ?? code)
+                                .join(", ")}
                             </p>
                           )}
 

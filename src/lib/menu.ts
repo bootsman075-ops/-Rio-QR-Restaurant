@@ -6,6 +6,33 @@ export const MENU_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 /** Server Action bodies are capped at 1 MB; the browser resizes before upload. */
 export const MENU_IMAGE_MAX_BYTES = 950 * 1024;
 
+/** The 14 EU allergens; codes are stored in menu_items.allergens. */
+export const MENU_ALLERGENS: Record<string, string> = {
+  gluten: "Gluten",
+  crustaceans: "Schaaldieren",
+  eggs: "Eieren",
+  fish: "Vis",
+  peanuts: "Pinda's",
+  soybeans: "Soja",
+  milk: "Melk",
+  nuts: "Noten",
+  celery: "Selderij",
+  mustard: "Mosterd",
+  sesame: "Sesam",
+  sulphites: "Sulfiet",
+  lupin: "Lupine",
+  molluscs: "Weekdieren",
+};
+
+/** Labels stored in menu_items.tags. */
+export const MENU_TAGS: Record<string, string> = {
+  vegetarian: "Vegetarisch",
+  vegan: "Veganistisch",
+  gluten_free: "Glutenvrij",
+  lactose_free: "Lactosevrij",
+  spicy: "Pittig",
+};
+
 export function formatPrice(priceCents: number) {
   return new Intl.NumberFormat("nl-NL", {
     style: "currency",

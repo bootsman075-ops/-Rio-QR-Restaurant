@@ -6,7 +6,7 @@ import type { ChangeEvent } from "react";
 
 import { saveMenuItem } from "./actions";
 import type { MenuItemFormState, MenuItemFormValues } from "./actions";
-import { MENU_IMAGE_MAX_BYTES } from "@/lib/menu";
+import { MENU_ALLERGENS, MENU_IMAGE_MAX_BYTES, MENU_TAGS } from "@/lib/menu";
 
 type SectionOption = {
   id: string;
@@ -150,6 +150,46 @@ export default function MenuItemForm({
               </option>
             ))}
           </select>
+        </label>
+
+        <fieldset className="field field-wide check-group">
+          <legend>Allergenen</legend>
+          {Object.entries(MENU_ALLERGENS).map(([code, label]) => (
+            <label key={code} className="checkbox">
+              <input
+                type="checkbox"
+                name="allergens"
+                value={code}
+                defaultChecked={values.allergens.includes(code)}
+              />
+              {label}
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset className="field field-wide check-group">
+          <legend>Kenmerken</legend>
+          {Object.entries(MENU_TAGS).map(([code, label]) => (
+            <label key={code} className="checkbox">
+              <input
+                type="checkbox"
+                name="tags"
+                value={code}
+                defaultChecked={values.tags.includes(code)}
+              />
+              {label}
+            </label>
+          ))}
+        </fieldset>
+
+        <label className="field field-wide checkbox">
+          <input
+            type="checkbox"
+            name="is_visible"
+            value="1"
+            defaultChecked={values.is_visible}
+          />
+          Zichtbaar op de menukaart voor gasten
         </label>
 
         <div className="field field-wide">

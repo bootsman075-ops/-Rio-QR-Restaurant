@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { hasStaffSession } from "@/lib/staff-session";
+import { requirePermission } from "@/lib/permissions";
 import {
   PILOT_RESTAURANT_SLUG,
   isReservationStatus,
@@ -33,9 +33,7 @@ export type ReservationFormState = {
 };
 
 async function assertStaff() {
-  if (!(await hasStaffSession())) {
-    redirect("/staff/login");
-  }
+  await requirePermission("reservations.manage");
 }
 
 async function getPilotRestaurant() {
@@ -234,6 +232,35 @@ export async function setReservationStatus(formData: FormData) {
     .update({ status })
     .eq("id", reservationId)
     .eq("restaurant_id", restaurant.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath(BASE_PATH);
+  redirect(returnPath);
+}
+
+/** Management only; only cancelled reservations can be deleted. */
+export async function deleteReservation(formData: FormData) {
+  const returnPath = safeReturnPath(formData.get("return_to"));
+
+  await requirePermission("reservations.delete", returnPath);
+
+  const reservationId = String(formData.get("reservation_id") ?? "");
+
+  if (!reservationId) {
+    redirect(returnPath);
+  }
+
+  const { supabase, restaurant } = await getPilotRestaurant();
+
+  const { error } = await supabase
+    .from("reservations")
+    .delete()
+    .eq("id", reservationId)
+    .eq("restaurant_id", restaurant.id)
+    .eq("status", "cancelled");
 
   if (error) {
     throw new Error(error.message);

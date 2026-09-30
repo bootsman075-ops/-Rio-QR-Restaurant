@@ -1,24 +1,44 @@
 import Link from "next/link";
 
+import { logout } from "./session-actions";
+import { ROLE_LABELS, can } from "@/lib/permissions";
+import type { Permission } from "@/lib/permissions";
+import { getStaffRole } from "@/lib/staff-session";
+
 type StaffNavProps = {
   current: "requests" | "reservations" | "menu";
 };
 
-const items = [
-  { key: "requests", href: "/staff", label: "Tafelverzoeken" },
-  { key: "reservations", href: "/staff/reserveringen", label: "Reserveringen" },
-  { key: "menu", href: "/staff/menu", label: "Menu beheren" },
-] as const;
+const items: {
+  key: StaffNavProps["current"];
+  href: string;
+  label: string;
+  permission: Permission;
+}[] = [
+  { key: "requests", href: "/staff", label: "Tafelverzoeken", permission: "requests.handle" },
+  { key: "reservations", href: "/staff/reserveringen", label: "Reserveringen", permission: "reservations.manage" },
+  { key: "menu", href: "/staff/menu", label: "Menu beheren", permission: "menu.manage" },
+];
 
-export default function StaffNav({ current }: StaffNavProps) {
+export default async function StaffNav({ current }: StaffNavProps) {
+  const role = await getStaffRole();
+
   return (
     <>
       <style>{`
+        .staff-nav-bar {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 28px;
+        }
+
         .staff-nav {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
-          margin-bottom: 28px;
         }
 
         .staff-nav-link {
@@ -41,20 +61,77 @@ export default function StaffNav({ current }: StaffNavProps) {
           border-color: #171714;
           color: #fff;
         }
+
+        .staff-session {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0;
+        }
+
+        .staff-role {
+          padding: 8px 14px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #777267;
+          background: rgba(255,255,255,.55);
+          border: 1px solid rgba(23,23,20,.10);
+        }
+
+        .staff-role strong {
+          color: #171714;
+        }
+
+        .staff-role.is-manager {
+          border-color: rgba(168,124,54,.45);
+          background: rgba(168,124,54,.12);
+        }
+
+        .staff-logout {
+          padding: 8px 14px;
+          border: 1px solid rgba(23,23,20,.16);
+          border-radius: 999px;
+          background: transparent;
+          color: #171714;
+          font: inherit;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .staff-logout:hover {
+          opacity: .75;
+        }
       `}</style>
 
-      <nav className="staff-nav" aria-label="Personeelsmenu">
-        {items.map((item) => (
-          <Link
-            key={item.key}
-            href={item.href}
-            className="staff-nav-link"
-            aria-current={item.key === current ? "page" : undefined}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      <div className="staff-nav-bar">
+        <nav className="staff-nav" aria-label="Personeelsmenu">
+          {items
+            .filter((item) => can(role, item.permission))
+            .map((item) => (
+              <Link
+                key={item.key}
+                href={item.href}
+                className="staff-nav-link"
+                aria-current={item.key === current ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+        </nav>
+
+        {role && (
+          <form action={logout} className="staff-session">
+            <span className={`staff-role${role === "manager" ? " is-manager" : ""}`}>
+              Ingelogd als <strong>{ROLE_LABELS[role]}</strong>
+            </span>
+            <button type="submit" className="staff-logout">
+              Uitloggen
+            </button>
+          </form>
+        )}
+      </div>
     </>
   );
 }

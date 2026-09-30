@@ -5,13 +5,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getStaffRole } from "@/lib/staff-session";
-import type { StaffRole } from "@/lib/staff-session";
+import { requirePermission } from "@/lib/permissions";
 import { PILOT_RESTAURANT_SLUG } from "@/lib/reservations";
 import {
+  MENU_ALLERGENS,
   MENU_IMAGES_BUCKET,
   MENU_IMAGE_MAX_BYTES,
   MENU_IMAGE_TYPES,
+  MENU_TAGS,
   parsePrice,
   storagePathFromUrl,
 } from "@/lib/menu";
@@ -23,6 +24,9 @@ export type MenuItemFormValues = {
   description: string;
   price: string;
   section_id: string;
+  allergens: string[];
+  tags: string[];
+  is_visible: boolean;
 };
 
 export type MenuItemFormState = {
@@ -40,18 +44,9 @@ export type SectionFormState = {
   values: SectionFormValues | null;
 };
 
-async function requireRole(required: StaffRole) {
-  const role = await getStaffRole();
-
-  if (!role) {
-    redirect("/staff/login");
-  }
-
-  if (required === "manager" && role !== "manager") {
-    redirect(`${BASE_PATH}?fout=geen-rechten`);
-  }
-
-  return role;
+/** Every menu change requires the management permission. */
+async function requireMenuPermission() {
+  await requirePermission("menu.manage", BASE_PATH);
 }
 
 async function getPilotRestaurant() {
@@ -118,11 +113,7 @@ export async function saveMenuItem(
   _previous: MenuItemFormState,
   formData: FormData,
 ): Promise<MenuItemFormState> {
-  const role = await getStaffRole();
-
-  if (!role) {
-    redirect("/staff/login");
-  }
+  await requireMenuPermission();
 
   const itemId = text(formData, "item_id");
   const values: MenuItemFormValues = {
@@ -130,12 +121,11 @@ export async function saveMenuItem(
     description: text(formData, "description"),
     price: text(formData, "price"),
     section_id: text(formData, "section_id"),
+    allergens: formData.getAll("allergens").map(String).filter((code) => code in MENU_ALLERGENS),
+    tags: formData.getAll("tags").map(String).filter((code) => code in MENU_TAGS),
+    is_visible: formData.get("is_visible") === "1",
   };
   const fail = (error: string) => ({ error, values });
-
-  if (!itemId && role !== "manager") {
-    return fail("Alleen een manager kan nieuwe gerechten toevoegen.");
-  }
 
   if (!values.name) {
     return fail("Vul een naam in.");
@@ -226,6 +216,9 @@ export async function saveMenuItem(
     price_cents: priceCents,
     section_id: values.section_id,
     image_url: imageUrl,
+    allergens: values.allergens,
+    tags: values.tags,
+    is_visible: values.is_visible,
   };
 
   const moved = !existing || existing.section_id !== values.section_id;
@@ -262,7 +255,7 @@ export async function saveMenuItem(
 }
 
 export async function setMenuItemAvailability(formData: FormData) {
-  await requireRole("staff");
+  await requireMenuPermission();
 
   const itemId = text(formData, "item_id");
   const available = formData.get("available") === "1";
@@ -285,7 +278,7 @@ export async function setMenuItemAvailability(formData: FormData) {
 }
 
 export async function moveMenuItem(formData: FormData) {
-  await requireRole("manager");
+  await requireMenuPermission();
 
   const itemId = text(formData, "item_id");
   const direction = text(formData, "direction") === "up" ? -1 : 1;
@@ -344,7 +337,7 @@ export async function moveMenuItem(formData: FormData) {
 }
 
 export async function deleteMenuItem(formData: FormData) {
-  await requireRole("manager");
+  await requireMenuPermission();
 
   const itemId = text(formData, "item_id");
   const { supabase, restaurantId } = await getPilotRestaurant();
@@ -377,7 +370,7 @@ export async function saveSection(
   _previous: SectionFormState,
   formData: FormData,
 ): Promise<SectionFormState> {
-  await requireRole("manager");
+  await requireMenuPermission();
 
   const sectionId = text(formData, "section_id");
   const values: SectionFormValues = {
@@ -449,7 +442,7 @@ export async function saveSection(
 }
 
 export async function setSectionVisibility(formData: FormData) {
-  await requireRole("manager");
+  await requireMenuPermission();
 
   const sectionId = text(formData, "section_id");
   const visible = formData.get("visible") === "1";
@@ -470,7 +463,7 @@ export async function setSectionVisibility(formData: FormData) {
 }
 
 export async function deleteSection(formData: FormData) {
-  await requireRole("manager");
+  await requireMenuPermission();
 
   const sectionId = text(formData, "section_id");
   const { supabase, restaurantId } = await getPilotRestaurant();

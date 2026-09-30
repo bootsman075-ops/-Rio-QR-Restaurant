@@ -3,9 +3,10 @@ import Link from "next/link";
 import LiveRefresh from "../LiveRefresh";
 import StaffNav from "../StaffNav";
 import ReservationForm from "./ReservationForm";
-import { setReservationStatus } from "./actions";
+import { deleteReservation, setReservationStatus } from "./actions";
 import type { ReservationFormValues } from "./actions";
-import { requireStaffSession } from "@/lib/staff-session";
+import ConfirmSubmitButton from "@/components/ui/ConfirmSubmitButton";
+import { can, requirePermission } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   PILOT_RESTAURANT_SLUG,
@@ -77,7 +78,8 @@ function tableName(table: ReservationRow["tables"]) {
 export default async function ReservationsPage({
   searchParams,
 }: ReservationsPageProps) {
-  await requireStaffSession();
+  const role = await requirePermission("reservations.manage");
+  const canDelete = can(role, "reservations.delete");
 
   const params = await searchParams;
 
@@ -849,6 +851,19 @@ export default async function ReservationsPage({
                                 <button type="submit" className="small-button danger">
                                   Annuleren
                                 </button>
+                              </form>
+                            )}
+
+                            {isCancelled && canDelete && (
+                              <form action={deleteReservation}>
+                                <input type="hidden" name="reservation_id" value={reservation.id} />
+                                <input type="hidden" name="return_to" value={listHref} />
+                                <ConfirmSubmitButton
+                                  className="small-button danger"
+                                  message={`Reservering van ${reservation.guest_name} definitief verwijderen?`}
+                                >
+                                  Verwijderen
+                                </ConfirmSubmitButton>
                               </form>
                             )}
                           </div>

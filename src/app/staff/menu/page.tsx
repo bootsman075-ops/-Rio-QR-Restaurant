@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import LiveRefresh from "../LiveRefresh";
 import StaffNav from "../StaffNav";
-import ConfirmSubmitButton from "./ConfirmSubmitButton";
+import ConfirmSubmitButton from "@/components/ui/ConfirmSubmitButton";
 import MenuItemForm from "./MenuItemForm";
 import SectionForm from "./SectionForm";
 import {
@@ -12,10 +12,10 @@ import {
   setMenuItemAvailability,
   setSectionVisibility,
 } from "./actions";
-import { requireStaffSession } from "@/lib/staff-session";
+import { requirePermission } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PILOT_RESTAURANT_SLUG } from "@/lib/reservations";
-import { formatPrice, priceToInput } from "@/lib/menu";
+import { MENU_ALLERGENS, MENU_TAGS, formatPrice, priceToInput } from "@/lib/menu";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +50,8 @@ type ItemRow = {
   sort_order: number;
   is_available: boolean;
   is_visible: boolean;
+  allergens: string[];
+  tags: string[];
 };
 
 const SUCCESS_MESSAGES: Record<string, string> = {
@@ -62,14 +64,12 @@ const SUCCESS_MESSAGES: Record<string, string> = {
 };
 
 const ERROR_MESSAGES: Record<string, string> = {
-  "geen-rechten": "Deze actie is alleen beschikbaar voor een manager.",
   "categorie-niet-leeg":
     "Deze categorie bevat nog gerechten. Verplaats of verwijder die eerst, of verberg de categorie.",
 };
 
 export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
-  const role = await requireStaffSession();
-  const isManager = role === "manager";
+  await requirePermission("menu.manage");
   const params = await searchParams;
 
   const supabaseConfigured =
@@ -101,7 +101,7 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
         supabase
           .from("menu_items")
           .select(
-            "id, section_id, name, description, price_cents, image_url, sort_order, is_available, is_visible",
+            "id, section_id, name, description, price_cents, image_url, sort_order, is_available, is_visible, allergens, tags",
           )
           .eq("restaurant_id", restaurant.id)
           .order("sort_order", { ascending: true })
@@ -122,14 +122,14 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
     ? (items.find((item) => item.id === params.gerecht) ?? null)
     : null;
   const newItemSection =
-    isManager && params["nieuw-gerecht"] === "1" && !editingItem
+    params["nieuw-gerecht"] === "1" && !editingItem
       ? (sections.find((section) => section.id === params.categorie) ?? sections[0] ?? null)
       : null;
   const editingSection =
-    isManager && params.categorie && !params["nieuw-gerecht"]
+    params.categorie && !params["nieuw-gerecht"]
       ? (sections.find((section) => section.id === params.categorie) ?? null)
       : null;
-  const showNewSection = isManager && params["nieuwe-categorie"] === "1";
+  const showNewSection = params["nieuwe-categorie"] === "1";
 
   const unavailableCount = items.filter((item) => !item.is_available).length;
   const visibleSectionCount = sections.filter((section) => section.is_visible).length;
@@ -296,19 +296,29 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
           opacity: .82;
         }
 
-        .role-note {
-          margin-bottom: 20px;
-          padding: 14px 18px;
-          border-radius: 16px;
-          background: rgba(255,255,255,.55);
-          border: 1px solid var(--line);
-          color: var(--muted);
-          font-size: 14px;
-          line-height: 1.5;
+        .check-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 18px;
+          margin: 0;
+          padding: 14px;
+          border: 1px solid rgba(23,23,20,.12);
+          border-radius: 12px;
         }
 
-        .role-note strong {
-          color: var(--ink);
+        .check-group legend {
+          padding: 0 6px;
+        }
+
+        .check-group .checkbox,
+        .field.checkbox {
+          font-weight: 400;
+        }
+
+        .item-info {
+          margin: 6px 0 0;
+          color: var(--muted);
+          font-size: 12px;
         }
 
         .notice,
@@ -623,33 +633,17 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
               <p className="subtitle">Wijzigingen zijn direct zichtbaar op de menukaart voor gasten.</p>
             </div>
 
-            {isManager && (
-              <div className="top-actions">
-                <Link href={`${BASE_PATH}?nieuwe-categorie=1`} className="link-button">
-                  + Categorie
+            <div className="top-actions">
+              <Link href={`${BASE_PATH}?nieuwe-categorie=1`} className="link-button">
+                + Categorie
+              </Link>
+              {sections.length > 0 && (
+                <Link href={`${BASE_PATH}?nieuw-gerecht=1`} className="primary-button">
+                  + Nieuw gerecht
                 </Link>
-                {sections.length > 0 && (
-                  <Link href={`${BASE_PATH}?nieuw-gerecht=1`} className="primary-button">
-                    + Nieuw gerecht
-                  </Link>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </header>
-
-          <div className="role-note">
-            {isManager ? (
-              <>
-                Ingelogd als <strong>manager</strong>: volledige toegang tot het menu.
-              </>
-            ) : (
-              <>
-                Ingelogd als <strong>personeel</strong>: je kunt gerechten wijzigen en op
-                beschikbaar of niet beschikbaar zetten. Gerechten toevoegen of verwijderen,
-                de volgorde aanpassen en categorieën beheren kan alleen een manager.
-              </>
-            )}
-          </div>
 
           {!supabaseConfigured ? (
             <div className="warning">
@@ -677,6 +671,9 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
                     description: editingItem.description ?? "",
                     price: priceToInput(editingItem.price_cents),
                     section_id: editingItem.section_id,
+                    allergens: editingItem.allergens,
+                    tags: editingItem.tags,
+                    is_visible: editingItem.is_visible,
                   }}
                 />
               )}
@@ -692,6 +689,9 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
                     description: "",
                     price: "",
                     section_id: newItemSection.id,
+                    allergens: [],
+                    tags: [],
+                    is_visible: true,
                   }}
                 />
               )}
@@ -758,49 +758,47 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
                         </p>
                       </div>
 
-                      {isManager && (
-                        <div className="actions">
-                          <Link
-                            href={`${BASE_PATH}?nieuw-gerecht=1&categorie=${section.id}`}
-                            className="small-button"
-                          >
-                            + Gerecht
-                          </Link>
+                      <div className="actions">
+                        <Link
+                          href={`${BASE_PATH}?nieuw-gerecht=1&categorie=${section.id}`}
+                          className="small-button"
+                        >
+                          + Gerecht
+                        </Link>
 
-                          <Link href={`${BASE_PATH}?categorie=${section.id}`} className="link-button">
-                            Naam wijzigen
-                          </Link>
+                        <Link href={`${BASE_PATH}?categorie=${section.id}`} className="link-button">
+                          Naam wijzigen
+                        </Link>
 
-                          <form action={setSectionVisibility}>
+                        <form action={setSectionVisibility}>
+                          <input type="hidden" name="section_id" value={section.id} />
+                          <input type="hidden" name="visible" value={section.is_visible ? "0" : "1"} />
+                          <button type="submit" className="small-button light">
+                            {section.is_visible ? "Verbergen" : "Tonen"}
+                          </button>
+                        </form>
+
+                        {sectionItems.length === 0 ? (
+                          <form action={deleteSection}>
                             <input type="hidden" name="section_id" value={section.id} />
-                            <input type="hidden" name="visible" value={section.is_visible ? "0" : "1"} />
-                            <button type="submit" className="small-button light">
-                              {section.is_visible ? "Verbergen" : "Tonen"}
-                            </button>
-                          </form>
-
-                          {sectionItems.length === 0 ? (
-                            <form action={deleteSection}>
-                              <input type="hidden" name="section_id" value={section.id} />
-                              <ConfirmSubmitButton
-                                className="small-button danger"
-                                message={`Categorie "${section.name}" definitief verwijderen?`}
-                              >
-                                Verwijderen
-                              </ConfirmSubmitButton>
-                            </form>
-                          ) : (
-                            <button
-                              type="button"
+                            <ConfirmSubmitButton
                               className="small-button danger"
-                              disabled
-                              title="Alleen lege categorieën kunnen worden verwijderd."
+                              message={`Categorie "${section.name}" definitief verwijderen?`}
                             >
                               Verwijderen
-                            </button>
-                          )}
-                        </div>
-                      )}
+                            </ConfirmSubmitButton>
+                          </form>
+                        ) : (
+                          <button
+                            type="button"
+                            className="small-button danger"
+                            disabled
+                            title="Alleen lege categorieën kunnen worden verwijderd."
+                          >
+                            Verwijderen
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {sectionItems.length === 0 ? (
@@ -834,6 +832,16 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
                               {item.description && (
                                 <p className="item-description">{item.description}</p>
                               )}
+                              {(item.allergens.length > 0 || item.tags.length > 0) && (
+                                <p className="item-info">
+                                  {[
+                                    ...item.tags.map((code) => MENU_TAGS[code] ?? code),
+                                    ...(item.allergens.length > 0
+                                      ? [`Allergenen: ${item.allergens.map((code) => MENU_ALLERGENS[code] ?? code).join(", ")}`]
+                                      : []),
+                                  ].join(" · ")}
+                                </p>
+                              )}
                               <p className="item-price">{formatPrice(item.price_cents)}</p>
                             </div>
 
@@ -853,47 +861,43 @@ export default async function MenuAdminPage({ searchParams }: MenuPageProps) {
                                 </button>
                               </form>
 
-                              {isManager && (
-                                <>
-                                  <form action={moveMenuItem}>
-                                    <input type="hidden" name="item_id" value={item.id} />
-                                    <input type="hidden" name="direction" value="up" />
-                                    <button
-                                      type="submit"
-                                      className="small-button light"
-                                      disabled={index === 0}
-                                      aria-label={`${item.name} omhoog`}
-                                      title="Omhoog"
-                                    >
-                                      ↑
-                                    </button>
-                                  </form>
+                              <form action={moveMenuItem}>
+                                <input type="hidden" name="item_id" value={item.id} />
+                                <input type="hidden" name="direction" value="up" />
+                                <button
+                                  type="submit"
+                                  className="small-button light"
+                                  disabled={index === 0}
+                                  aria-label={`${item.name} omhoog`}
+                                  title="Omhoog"
+                                >
+                                  ↑
+                                </button>
+                              </form>
 
-                                  <form action={moveMenuItem}>
-                                    <input type="hidden" name="item_id" value={item.id} />
-                                    <input type="hidden" name="direction" value="down" />
-                                    <button
-                                      type="submit"
-                                      className="small-button light"
-                                      disabled={index === sectionItems.length - 1}
-                                      aria-label={`${item.name} omlaag`}
-                                      title="Omlaag"
-                                    >
-                                      ↓
-                                    </button>
-                                  </form>
+                              <form action={moveMenuItem}>
+                                <input type="hidden" name="item_id" value={item.id} />
+                                <input type="hidden" name="direction" value="down" />
+                                <button
+                                  type="submit"
+                                  className="small-button light"
+                                  disabled={index === sectionItems.length - 1}
+                                  aria-label={`${item.name} omlaag`}
+                                  title="Omlaag"
+                                >
+                                  ↓
+                                </button>
+                              </form>
 
-                                  <form action={deleteMenuItem}>
-                                    <input type="hidden" name="item_id" value={item.id} />
-                                    <ConfirmSubmitButton
-                                      className="small-button danger"
-                                      message={`"${item.name}" definitief verwijderen? Tip: met "Niet beschikbaar" blijft het gerecht bewaard.`}
-                                    >
-                                      Verwijderen
-                                    </ConfirmSubmitButton>
-                                  </form>
-                                </>
-                              )}
+                              <form action={deleteMenuItem}>
+                                <input type="hidden" name="item_id" value={item.id} />
+                                <ConfirmSubmitButton
+                                  className="small-button danger"
+                                  message={`"${item.name}" definitief verwijderen? Tip: met "Niet beschikbaar" blijft het gerecht bewaard.`}
+                                >
+                                  Verwijderen
+                                </ConfirmSubmitButton>
+                              </form>
                             </div>
                           </article>
                         ))}
