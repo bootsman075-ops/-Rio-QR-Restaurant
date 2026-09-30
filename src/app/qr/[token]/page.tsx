@@ -1,6 +1,6 @@
 ﻿import { createClient } from "@/lib/supabase/server";
 import ServiceActions from "./ServiceActions";
-import { MENU_ALLERGENS } from "@/lib/menu";
+import { MENU_ALLERGENS, MENU_TAGS } from "@/lib/menu";
 
 type PageProps = {
   params: Promise<{
@@ -117,7 +117,7 @@ export default async function QrTablePage({ params }: PageProps) {
   const { data: items } = await supabase
     .from("menu_items")
     .select(
-      "id, section_id, name, description, price_cents, sort_order, is_available, image_url, allergens"
+      "id, section_id, name, description, price_cents, sort_order, is_available, image_url, allergens, tags"
     )
     .eq("restaurant_id", table.restaurant_id)
     .eq("is_visible", true)
@@ -399,6 +399,25 @@ export default async function QrTablePage({ params }: PageProps) {
           letter-spacing: -.02em;
         }
 
+        .dish-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin: 10px 0 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .dish-tag {
+          padding: 4px 9px;
+          border-radius: 999px;
+          background: rgba(156,115,51,.10);
+          color: var(--accent);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: .02em;
+        }
+
         .dish-allergens {
           margin: 8px 0 0;
           color: var(--accent);
@@ -605,6 +624,16 @@ export default async function QrTablePage({ params }: PageProps) {
                             <p className="dish-description">
                               {item.description}
                             </p>
+                          )}
+
+                          {item.tags.length > 0 && (
+                            <ul className="dish-tags">
+                              {item.tags.map((code) => (
+                                <li key={code} className="dish-tag">
+                                  {MENU_TAGS[code] ?? code}
+                                </li>
+                              ))}
+                            </ul>
                           )}
 
                           {item.allergens.length > 0 && (
