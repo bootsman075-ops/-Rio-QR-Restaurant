@@ -1,4 +1,5 @@
 ﻿import LiveRefresh from "./LiveRefresh";
+import StaffNav from "./StaffNav";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
@@ -378,6 +379,8 @@ export default async function StaffPage() {
 
       <main className="staff-page">
         <div className="wrap">
+          <StaffNav current="requests" />
+
           <header className="top">
             <div>
               <p className="eyebrow">R.I.O. Deventer</p>

@@ -86,6 +86,21 @@ Row Level Security staat aan op alle tabellen, nog zonder policies: tot de authe
 
 De migraties in `supabase/migrations/` in volgorde uitvoeren, daarna `supabase/seed.sql` voor de pilotdata. Dit kan via de Supabase CLI (`supabase db push`) of door de bestanden in de SQL Editor van het Supabase-dashboard te plakken. De seed kan veilig vaker gedraaid worden.
 
+## Personeelsdashboard
+
+Inloggen via `/staff/login` met `STAFF_DASHBOARD_PASSWORD`. Het menu bovenaan heeft twee onderdelen:
+
+- **Tafelverzoeken** (`/staff`) — live meldingen "Bediening roepen" en "Rekening aanvragen".
+- **Reserveringen** (`/staff/reserveringen`) — reserveringen bekijken, toevoegen, wijzigen, status aanpassen en annuleren; filteren op datum en status. Gebruikt de bestaande tabel `reservations`; datum en tijd worden in de tijdzone van het restaurant ingevoerd en getoond.
+
+| Status in de app | Waarde in de database |
+| ---------------- | --------------------- |
+| Nieuw            | `pending`             |
+| Bevestigd        | `confirmed`           |
+| Gearriveerd      | `seated`              |
+| Afgerond         | `completed`           |
+| Geannuleerd      | `cancelled`           |
+
 ## Fases
 
 1. **Projectbasis** — Next.js, TypeScript, Tailwind, structuur en documentatie ✅
