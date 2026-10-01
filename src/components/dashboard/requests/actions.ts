@@ -1,13 +1,17 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 
 import { DASHBOARD_PATHS } from "../areas";
-import { requirePermission } from "@/lib/permissions";
+import { requirePermissionContext } from "@/lib/permissions";
+import { createClient } from "@/lib/supabase/server";
 
 export async function markRequestHandled(formData: FormData) {
-  await requirePermission("requests.handle");
+  const context = await requirePermissionContext("requests.handle");
+
+  if (!context.restaurantId) {
+    throw new Error("Geen restaurant geselecteerd.");
+  }
 
   const requestId = String(formData.get("request_id") ?? "");
 
@@ -15,20 +19,7 @@ export async function markRequestHandled(formData: FormData) {
     return;
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const secretKey = process.env.SUPABASE_SECRET_KEY;
-
-  if (!supabaseUrl || !secretKey) {
-    throw new Error("Supabase serverconfiguratie ontbreekt.");
-  }
-
-  const supabase = createClient(supabaseUrl, secretKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
-
+  const supabase = await createClient();
   const { error } = await supabase
     .from("service_requests")
     .update({
@@ -36,6 +27,7 @@ export async function markRequestHandled(formData: FormData) {
       handled_at: new Date().toISOString(),
     })
     .eq("id", requestId)
+    .eq("restaurant_id", context.restaurantId)
     .eq("status", "pending");
 
   if (error) {
