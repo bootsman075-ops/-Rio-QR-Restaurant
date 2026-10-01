@@ -29,7 +29,7 @@ export async function dashboardLogin(formData: FormData) {
     .maybeSingle();
 
   if (platformAdmin) {
-    redirect("/management");
+    redirect("/platform");
   }
 
   const { data: membership } = await supabase
