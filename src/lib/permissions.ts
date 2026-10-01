@@ -1,29 +1,26 @@
 import "server-only";
 import { redirect } from "next/navigation";
 
-import { getStaffRole } from "@/lib/staff-session";
-import type { StaffRole } from "@/lib/staff-session";
+import { getStaffContext } from "@/lib/staff-session";
+import type { StaffContext, StaffRole } from "@/lib/staff-session";
 
-/**
- * Everything a dashboard user can be allowed to do. Add new management
- * features here; management automatically gets every permission.
- */
 export type Permission =
-  | "requests.handle" // table service and bill requests
-  | "reservations.manage" // view, add, edit, change status, cancel
+  | "requests.handle"
+  | "reservations.manage"
   | "reservations.delete"
-  | "management.access" // the /management environment
-  | "menu.manage"; // dishes, prices, images, allergens, tags, availability, order, categories
+  | "management.access"
+  | "menu.manage";
 
-/** Daily operational permissions for regular staff. */
 const STAFF_PERMISSIONS: readonly Permission[] = [
   "requests.handle",
   "reservations.manage",
 ];
 
 export const ROLE_LABELS: Record<StaffRole, string> = {
-  staff: "Personeel",
+  platform_admin: "Platformbeheer",
+  restaurant_owner: "Eigenaar",
   manager: "Management",
+  staff: "Personeel",
 };
 
 export function can(role: StaffRole | null, permission: Permission) {
@@ -31,26 +28,37 @@ export function can(role: StaffRole | null, permission: Permission) {
     return false;
   }
 
-  return role === "manager" || STAFF_PERMISSIONS.includes(permission);
-}
-
-/**
- * Server-side guard for pages, route handlers and Server Actions.
- * - No session: redirect to the staff login, or to the management login for
- *   management-only permissions.
- * - Session without the permission (staff on a management function):
- *   redirect to /staff.
- */
-export async function requirePermission(permission: Permission) {
-  const role = await getStaffRole();
-
-  if (!role) {
-    redirect(STAFF_PERMISSIONS.includes(permission) ? "/staff/login" : "/management/login");
+  if (
+    role === "platform_admin" ||
+    role === "restaurant_owner" ||
+    role === "manager"
+  ) {
+    return true;
   }
 
-  if (!can(role, permission)) {
+  return STAFF_PERMISSIONS.includes(permission);
+}
+
+function loginPath() {
+  return "/login";
+}
+
+export async function requirePermissionContext(
+  permission: Permission,
+): Promise<StaffContext> {
+  const context = await getStaffContext();
+
+  if (!context) {
+    redirect(loginPath());
+  }
+
+  if (!can(context.role, permission)) {
     redirect("/staff");
   }
 
-  return role;
+  return context;
+}
+
+export async function requirePermission(permission: Permission) {
+  return (await requirePermissionContext(permission)).role;
 }
