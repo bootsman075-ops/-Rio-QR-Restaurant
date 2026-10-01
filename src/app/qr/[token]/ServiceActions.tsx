@@ -17,27 +17,16 @@ export default function ServiceActions({
       setLoading(type);
       setMessage("");
 
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-      if (!url || !key) {
-        throw new Error("Supabase configuratie ontbreekt");
-      }
-
-      const response = await fetch(
-        `${url}/rest/v1/rpc/create_service_request`,
-        {
-          method: "POST",
-          headers: {
-            apikey: key,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            p_token: token,
-            p_request_type: type,
-          }),
-        }
-      );
+      const response = await fetch("/api/service-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+          request_type: type,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(await response.text());
