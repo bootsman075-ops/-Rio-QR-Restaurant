@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { logout } from "@/components/dashboard/auth-actions";
 import { getStaffContext } from "@/lib/staff-session";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { inviteRestaurantUser } from "./invite-actions";
 
@@ -10,6 +11,12 @@ export const dynamic = "force-dynamic";
 type Props = {
   searchParams?: Promise<{ invite?: string }>;
 };
+
+const ROLE_LABELS = {
+  restaurant_owner: "Eigenaar",
+  manager: "Management",
+  staff: "Personeel",
+} as const;
 
 export default async function PlatformPage({ searchParams }: Props) {
   const context = await getStaffContext();
@@ -23,13 +30,61 @@ export default async function PlatformPage({ searchParams }: Props) {
   }
 
   const supabase = await createClient();
-  const { data: restaurants, error } = await supabase
-    .from("restaurants")
-    .select("id, name, slug, city, is_active")
-    .order("name", { ascending: true });
+  const admin = createAdminClient();
 
-  if (error) {
-    throw new Error(error.message);
+  const [
+    { data: restaurants, error: restaurantsError },
+    { data: memberships, error: membershipsError },
+    { data: authUsers, error: authUsersError },
+  ] = await Promise.all([
+    supabase
+      .from("restaurants")
+      .select("id, name, slug, city, is_active")
+      .order("name", { ascending: true }),
+    admin
+      .from("user_restaurants")
+      .select("user_id, restaurant_id, role, active, created_at")
+      .order("created_at", { ascending: true }),
+    admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+  ]);
+
+  if (restaurantsError) {
+    throw new Error(restaurantsError.message);
+  }
+
+  if (membershipsError) {
+    throw new Error(membershipsError.message);
+  }
+
+  if (authUsersError) {
+    throw new Error(authUsersError.message);
+  }
+
+  const emailByUserId = new Map(
+    authUsers.users.map((user) => [user.id, user.email ?? "E-mail onbekend"]),
+  );
+
+  const membersByRestaurant = new Map<
+    string,
+    Array<{
+      user_id: string;
+      email: string;
+      role: "restaurant_owner" | "manager" | "staff";
+      active: boolean;
+      created_at: string;
+    }>
+  >();
+
+  for (const membership of memberships ?? []) {
+    const entries = membersByRestaurant.get(membership.restaurant_id) ?? [];
+    entries.push({
+      user_id: membership.user_id,
+      email: emailByUserId.get(membership.user_id) ?? "E-mail onbekend",
+      role: membership.role,
+      active: membership.active,
+      created_at: membership.created_at,
+    });
+    membersByRestaurant.set(membership.restaurant_id, entries);
   }
 
   const params = searchParams ? await searchParams : {};
@@ -65,7 +120,7 @@ export default async function PlatformPage({ searchParams }: Props) {
           font-family: Arial, Helvetica, sans-serif;
         }
         .page { min-height: 100vh; padding: 44px 20px 80px; }
-        .wrap { width: 100%; max-width: 1050px; margin: 0 auto; }
+        .wrap { width: 100%; max-width: 1180px; margin: 0 auto; }
         .top {
           display: flex;
           justify-content: space-between;
@@ -152,24 +207,71 @@ export default async function PlatformPage({ searchParams }: Props) {
           gap: 14px;
         }
         .card {
-          display: block;
           padding: 24px;
           border: 1px solid var(--line);
           border-radius: 22px;
           background: var(--paper);
-          color: inherit;
-          text-decoration: none;
+        }
+        .card-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 14px;
         }
         .card h2 { margin: 0; font-size: 24px; }
         .meta { margin: 8px 0 0; color: var(--muted); line-height: 1.5; }
         .status {
           display: inline-block;
-          margin-top: 16px;
           padding: 6px 10px;
           border-radius: 999px;
           background: rgba(23,23,20,.08);
           font-size: 12px;
           font-weight: 800;
+          white-space: nowrap;
+        }
+        .members {
+          margin-top: 20px;
+          padding-top: 18px;
+          border-top: 1px solid var(--line);
+        }
+        .members-title {
+          margin: 0 0 10px;
+          font-size: 13px;
+          font-weight: 800;
+          letter-spacing: .05em;
+          text-transform: uppercase;
+        }
+        .member {
+          display: grid;
+          grid-template-columns: minmax(0,1fr) auto auto;
+          gap: 10px;
+          align-items: center;
+          padding: 10px 0;
+          border-top: 1px solid rgba(23,23,20,.07);
+        }
+        .member:first-of-type { border-top: 0; }
+        .member-email {
+          min-width: 0;
+          overflow-wrap: anywhere;
+          font-weight: 700;
+        }
+        .role {
+          padding: 5px 8px;
+          border-radius: 999px;
+          background: rgba(168,124,54,.12);
+          font-size: 12px;
+          font-weight: 800;
+        }
+        .member-status {
+          font-size: 12px;
+          font-weight: 800;
+          color: var(--muted);
+        }
+        .member-status.active { color: #26683b; }
+        .no-members {
+          margin: 0;
+          color: var(--muted);
+          font-size: 14px;
         }
         .empty {
           padding: 28px;
@@ -178,12 +280,15 @@ export default async function PlatformPage({ searchParams }: Props) {
           background: var(--paper);
           color: var(--muted);
         }
-        @media (max-width: 800px) {
-          .invite-grid { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 700px) {
-          .top { flex-direction: column; }
+        @media (max-width: 900px) {
+          .invite-grid { grid-template-columns: 1fr 1fr; }
           .grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 620px) {
+          .top { flex-direction: column; }
+          .invite-grid { grid-template-columns: 1fr; }
+          .member { grid-template-columns: 1fr; }
+          .role, .member-status { width: fit-content; }
         }
       `}</style>
 
@@ -193,7 +298,9 @@ export default async function PlatformPage({ searchParams }: Props) {
             <div>
               <p className="eyebrow">vantorstudio Restaurant Platform</p>
               <h1>Platformbeheer</h1>
-              <p className="subtitle">Centraal overzicht van aangesloten restaurants.</p>
+              <p className="subtitle">
+                Centraal overzicht van restaurants, gebruikers en rollen.
+              </p>
             </div>
             <form action={logout}>
               <button className="logout" type="submit">Uitloggen</button>
@@ -202,7 +309,9 @@ export default async function PlatformPage({ searchParams }: Props) {
 
           <section className="invite">
             <h2>Gebruiker uitnodigen</h2>
-            <p>De gebruiker ontvangt een persoonlijke activatielink en stelt zelf een wachtwoord in.</p>
+            <p>
+              De gebruiker ontvangt een persoonlijke activatielink en stelt zelf een wachtwoord in.
+            </p>
             {inviteMessage ? <div className="notice">{inviteMessage}</div> : null}
             <form className="invite-grid" action={inviteRestaurantUser}>
               <div className="field">
@@ -236,18 +345,48 @@ export default async function PlatformPage({ searchParams }: Props) {
 
           {restaurants?.length ? (
             <section className="grid">
-              {restaurants.map((restaurant) => (
-                <article className="card" key={restaurant.id}>
-                  <h2>{restaurant.name}</h2>
-                  <p className="meta">
-                    {restaurant.city ?? "Plaats niet ingesteld"}<br />
-                    {restaurant.slug}
-                  </p>
-                  <span className="status">
-                    {restaurant.is_active ? "Actief" : "Inactief"}
-                  </span>
-                </article>
-              ))}
+              {restaurants.map((restaurant) => {
+                const members = membersByRestaurant.get(restaurant.id) ?? [];
+
+                return (
+                  <article className="card" key={restaurant.id}>
+                    <div className="card-head">
+                      <div>
+                        <h2>{restaurant.name}</h2>
+                        <p className="meta">
+                          {restaurant.city ?? "Plaats niet ingesteld"}<br />
+                          {restaurant.slug}
+                        </p>
+                      </div>
+                      <span className="status">
+                        {restaurant.is_active ? "Actief" : "Inactief"}
+                      </span>
+                    </div>
+
+                    <div className="members">
+                      <p className="members-title">
+                        Gekoppelde accounts ({members.length})
+                      </p>
+
+                      {members.length ? (
+                        members.map((member) => (
+                          <div className="member" key={member.user_id}>
+                            <span className="member-email">{member.email}</span>
+                            <span className="role">{ROLE_LABELS[member.role]}</span>
+                            <span
+                              className={`member-status ${member.active ? "active" : ""}`}
+                            >
+                              {member.active ? "Actief" : "Inactief"}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="no-members">Nog geen gebruikers gekoppeld.</p>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </section>
           ) : (
             <div className="empty">Er zijn nog geen restaurants zichtbaar.</div>
