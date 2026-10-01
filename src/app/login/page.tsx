@@ -14,7 +14,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const context = await getStaffContext();
 
   if (context) {
-    redirect(context.role === "staff" ? "/staff" : "/management");
+    redirect(
+      context.role === "platform_admin"
+        ? "/platform"
+        : context.role === "staff"
+          ? "/staff"
+          : "/management",
+    );
   }
 
   const params = await searchParams;
