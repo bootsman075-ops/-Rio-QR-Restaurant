@@ -13,8 +13,8 @@ import {
   setMenuItemAvailability,
   setSectionVisibility,
 } from "./actions";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { PILOT_RESTAURANT_SLUG } from "@/lib/reservations";
+import { requirePermissionContext } from "@/lib/permissions";
+import { createClient } from "@/lib/supabase/server";
 import { MENU_ALLERGENS, MENU_TAGS, formatPrice, priceToInput } from "@/lib/menu";
 
 const BASE_PATH = DASHBOARD_PATHS.management.menu;
@@ -66,50 +66,46 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 /** Menu management (management only; the route checks menu.manage). */
 export default async function MenuView({ params }: { params: MenuSearchParams }) {
+  const context = await requirePermissionContext("menu.manage");
+
+  if (!context.restaurantId) {
+    throw new Error("Geen restaurant gekoppeld aan dit account.");
+  }
 
   const supabaseConfigured =
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SECRET_KEY;
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   let sections: SectionRow[] = [];
   let items: ItemRow[] = [];
   let loadError = false;
 
   if (supabaseConfigured) {
-    const supabase = createAdminClient();
+    const supabase = await createClient();
 
-    const { data: restaurant } = await supabase
-      .from("restaurants")
-      .select("id")
-      .eq("slug", PILOT_RESTAURANT_SLUG)
-      .maybeSingle();
+    const [sectionsResult, itemsResult] = await Promise.all([
+      supabase
+        .from("menu_sections")
+        .select("id, name, description, sort_order, is_visible")
+        .eq("restaurant_id", context.restaurantId)
+        .order("sort_order", { ascending: true })
+        .order("name", { ascending: true }),
+      supabase
+        .from("menu_items")
+        .select(
+          "id, section_id, name, description, price_cents, image_url, sort_order, is_available, is_visible, allergens, tags",
+        )
+        .eq("restaurant_id", context.restaurantId)
+        .order("sort_order", { ascending: true })
+        .order("name", { ascending: true }),
+    ]);
 
-    if (!restaurant) {
+    if (sectionsResult.error || itemsResult.error) {
+      console.error(sectionsResult.error ?? itemsResult.error);
       loadError = true;
     } else {
-      const [sectionsResult, itemsResult] = await Promise.all([
-        supabase
-          .from("menu_sections")
-          .select("id, name, description, sort_order, is_visible")
-          .eq("restaurant_id", restaurant.id)
-          .order("sort_order", { ascending: true })
-          .order("name", { ascending: true }),
-        supabase
-          .from("menu_items")
-          .select(
-            "id, section_id, name, description, price_cents, image_url, sort_order, is_available, is_visible, allergens, tags",
-          )
-          .eq("restaurant_id", restaurant.id)
-          .order("sort_order", { ascending: true })
-          .order("name", { ascending: true }),
-      ]);
-
-      if (sectionsResult.error || itemsResult.error) {
-        console.error(sectionsResult.error ?? itemsResult.error);
-        loadError = true;
-      } else {
-        sections = sectionsResult.data;
-        items = itemsResult.data;
-      }
+      sections = sectionsResult.data;
+      items = itemsResult.data;
     }
   }
 
@@ -623,7 +619,7 @@ export default async function MenuView({ params }: { params: MenuSearchParams })
 
           <header className="top">
             <div>
-              <p className="eyebrow">R.I.O. Deventer</p>
+              <p className="eyebrow">{context.restaurantName ?? "Restaurant"}</p>
               <h1>Menu beheren</h1>
               <p className="subtitle">Wijzigingen zijn direct zichtbaar op de menukaart voor gasten.</p>
             </div>
