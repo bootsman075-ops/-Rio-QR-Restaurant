@@ -1,0 +1,29 @@
+name: Security branch CI
+
+on:
+  push:
+    branches:
+      - security/multitenant-hardening
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_test
+      SUPABASE_SECRET_KEY: sb_secret_test
+      STAFF_DASHBOARD_PASSWORD: ci-staff-password
+      MANAGER_DASHBOARD_PASSWORD: ci-manager-password
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
