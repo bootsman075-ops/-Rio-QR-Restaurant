@@ -1,17 +1,17 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import LiveRefresh from "@/components/dashboard/LiveRefresh";
 import { DASHBOARD_PATHS } from "@/components/dashboard/areas";
-import { requirePermission } from "@/lib/permissions";
+import { requirePermissionContext } from "@/lib/permissions";
 import {
-  PILOT_RESTAURANT_SLUG,
   addDays,
   formatLongDate,
   todayInZone,
   zonedToIso,
 } from "@/lib/reservations";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -26,18 +26,15 @@ type Overview = {
   hiddenSections: number;
 };
 
-async function loadOverview(): Promise<{ today: string; data: Overview | null }> {
+async function loadOverview(
+  restaurantId: string,
+): Promise<{ today: string; data: Overview | null }> {
   const fallbackToday = todayInZone("Europe/Amsterdam");
-
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) {
-    return { today: fallbackToday, data: null };
-  }
-
-  const supabase = createAdminClient();
+  const supabase = await createClient();
   const { data: restaurant } = await supabase
     .from("restaurants")
     .select("id, timezone")
-    .eq("slug", PILOT_RESTAURANT_SLUG)
+    .eq("id", restaurantId)
     .maybeSingle();
 
   if (!restaurant) {
@@ -87,9 +84,13 @@ async function loadOverview(): Promise<{ today: string; data: Overview | null }>
 }
 
 export default async function ManagementPage() {
-  await requirePermission("management.access");
+  const context = await requirePermissionContext("management.access");
 
-  const { today, data } = await loadOverview();
+  if (!context.restaurantId) {
+    redirect("/platform");
+  }
+
+  const { today, data } = await loadOverview(context.restaurantId);
   const paths = DASHBOARD_PATHS.management;
 
   const modules = [
@@ -309,7 +310,7 @@ export default async function ManagementPage() {
           <DashboardNav area="management" current="overview" />
 
           <header className="top">
-            <p className="eyebrow">R.I.O. Deventer</p>
+            <p className="eyebrow">{context.restaurantName ?? "Restaurant"}</p>
             <h1>Management</h1>
             <p className="subtitle">Overzicht van {formatLongDate(today)}.</p>
           </header>
