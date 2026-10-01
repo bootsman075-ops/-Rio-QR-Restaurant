@@ -1,4 +1,5 @@
 ﻿import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import ServiceActions from "./ServiceActions";
 import { MENU_ALLERGENS, MENU_TAGS } from "@/lib/menu";
 
@@ -28,8 +29,9 @@ function formatPrice(priceCents: number) {
 export default async function QrTablePage({ params }: PageProps) {
   const { token } = await params;
   const supabase = await createClient();
+  const admin = createAdminClient();
 
-  const { data: qrData, error: qrError } = await supabase.rpc(
+  const { data: qrData, error: qrError } = await admin.rpc(
     "resolve_qr_token",
     {
       p_token: token,
