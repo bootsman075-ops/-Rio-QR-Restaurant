@@ -12,6 +12,8 @@ export default function Home() {
     const params = new URLSearchParams(hash.slice(1));
     const isRecovery =
       params.get("type") === "recovery" ||
+      params.has("error") ||
+      params.has("error_code") ||
       (params.has("access_token") && params.has("refresh_token"));
 
     if (isRecovery) {
