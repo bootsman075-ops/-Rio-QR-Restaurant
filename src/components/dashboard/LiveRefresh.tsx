@@ -50,6 +50,8 @@ export default function LiveRefresh() {
     const enabled = saved === "1";
 
     soundEnabledRef.current = enabled;
+    // Hydrate a browser-only preference once after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSoundEnabled(enabled);
   }, []);
 

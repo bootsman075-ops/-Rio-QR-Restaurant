@@ -1,4 +1,4 @@
-﻿import { createClient } from "@/lib/supabase/server";
+﻿import { createAdminClient } from "@/lib/supabase/admin";
 import ServiceActions from "./ServiceActions";
 import { MENU_ALLERGENS, MENU_TAGS } from "@/lib/menu";
 
@@ -27,18 +27,41 @@ function formatPrice(priceCents: number) {
 
 export default async function QrTablePage({ params }: PageProps) {
   const { token } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  const { data: qrData, error: qrError } = await supabase.rpc(
-    "resolve_qr_token",
-    {
-      p_token: token,
-    }
-  );
+  const { data: tokenRow, error: tokenError } = await supabase
+    .from("qr_tokens")
+    .select(
+      "restaurant_id, table_id, revoked_at, tables!inner(id, number, label, is_active, restaurant_id), restaurants!inner(id, slug, name, is_active)"
+    )
+    .eq("token", token)
+    .is("revoked_at", null)
+    .maybeSingle();
 
-  const table = qrData?.[0];
+  const tableRecord = Array.isArray(tokenRow?.tables)
+    ? tokenRow?.tables[0]
+    : tokenRow?.tables;
+  const restaurantRecord = Array.isArray(tokenRow?.restaurants)
+    ? tokenRow?.restaurants[0]
+    : tokenRow?.restaurants;
 
-  if (qrError || !table) {
+  const table =
+    !tokenError &&
+    tokenRow &&
+    tableRecord?.is_active &&
+    restaurantRecord?.is_active &&
+    tableRecord.restaurant_id === tokenRow.restaurant_id
+      ? {
+          restaurant_id: tokenRow.restaurant_id,
+          restaurant_slug: restaurantRecord.slug,
+          restaurant_name: restaurantRecord.name,
+          table_id: tokenRow.table_id,
+          table_number: tableRecord.number,
+          table_label: tableRecord.label,
+        }
+      : null;
+
+  if (!table) {
     return (
       <>
         <style>{`
