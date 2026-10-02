@@ -1,6 +1,24 @@
+"use client";
+
+import { useEffect } from "react";
+
 import { siteConfig } from "@/lib/site";
 
 export default function Home() {
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+
+    const params = new URLSearchParams(hash.slice(1));
+    const isRecovery =
+      params.get("type") === "recovery" ||
+      (params.has("access_token") && params.has("refresh_token"));
+
+    if (isRecovery) {
+      window.location.replace(`/reset-password${hash}`);
+    }
+  }, []);
+
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-24">
       <div className="w-full max-w-xl space-y-6">
