@@ -64,7 +64,9 @@ export async function inviteRestaurantUser(formData: FormData) {
     });
 
   if (membershipError) {
-    await admin.auth.admin.deleteUser(data.user.id);
+    // Never delete an Auth identity on a membership error: the invited
+    // address may already belong to another restaurant or an existing admin.
+    // Leave the identity untouched; reconcile the membership manually.
     redirect("/platform?invite=membership");
   }
 
