@@ -44,3 +44,22 @@ Datum: 2026-10-15
 **NO-GO.** Niet mergen naar productie of database migreren totdat de database actief en gekoppeld is, account- en RLS-tests zijn uitgevoerd, de herstelmails zijn geverifieerd en alle drie de gebruikersrollen getest zijn.
 
 Wijzigingen bevinden zich alleen op `security/account-recovery-mfa-20261015` en worden als draft PR aangeboden.
+
+
+## Gecontroleerde resultaten (2026-10-15)
+- GitHub Actions lint: **geslaagd**.
+- Next.js productiebouw incl. TypeScript: **geslaagd**.
+- Vercel security-branch preview: **READY**; dit is geen bewijs dat de browserlogin of database werkt.
+- `npm audit --omit=dev --audit-level=high`: **geslaagd**, geen hoge kwetsbaarheden in de geïnstalleerde productieafhankelijkheden.
+- `npm audit --audit-level=high`: **niet geslaagd**, 5 hoge meldingen via `eslint-config-next -> @next/eslint-plugin-next -> fast-glob -> micromatch -> braces@3.0.3`. De keten is `dev: true` in het lockbestand. Officieel is er nog geen gepatchte `braces`-versie; een voorgestelde force-downgrade van de Next-lintconfiguratie is bewust niet toegepast. Audit blijft daarom falen zodat dit zichtbaar is.
+- Framework `next` en `eslint-config-next` bijgewerkt van 16.3.7 naar 16.4.1; `source-map-js` staat nu op 1.2.2.
+- Het tijdelijke workflow-bestand voor de dependency-update is na de geslaagde lockfilewijziging verwijderd.
+
+### Aanvullende testbehoefte
+- Voer een echte database-RLS-test uit met `aal1` en `aal2` JWT's, twee restaurants en alle rollen.
+- Verifieer dat een gast zonder account een geldige QR-code kan gebruiken, dat ongeldige QR-codes worden geweigerd en dat misbruik van publieke tafelverzoeken is begrensd.
+- Controleer herstelmails en de e-mail-SMTP, plus zowel geldige als verlopen herstel- en uitnodigingslinks.
+- Test het registreren van twee authenticatoren op afzonderlijke apparaten; standaard herstelcodes zijn niet door Supabase Auth ondersteund.
+- Een administratieve herstelprocedure bij verlies van alle authenticators vereist strenge identiteitsverificatie, logging en notificatie; deze procedure is nog niet gebouwd en mag niet worden voorgesteld als werkend.
+
+**Livebesluit blijft NO-GO:** de status van Supabase is `INACTIVE`, de databasewijziging is niet toegepast en een echte browser-/accounttest met de drie rollen ontbreekt.
