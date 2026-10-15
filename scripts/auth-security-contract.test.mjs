@@ -45,3 +45,33 @@ test("MFA is required before privileged staff access, including a first-time log
   assert.match(staff, /currentLevel !== "aal2"/);
   assert.match(staff, /redirect\("\/security\/mfa"\)/);
 });
+
+
+test("a verified authenticator navigates directly to server-authorized dashboard routing", () => {
+  const mfa = read("src/app/security/mfa/page.tsx");
+  const next = read("src/app/auth/continue/page.tsx");
+  assert.match(mfa, /window\.location\.replace\("\/auth\/continue"\)/);
+  assert.match(mfa, /href="\/auth\/continue"/);
+  assert.match(next, /getStaffContext\(\)/);
+  assert.match(next, /supabase\.auth\.getUser\(\)/);
+  assert.match(next, /context\.role === "platform_admin"/);
+  assert.match(next, /context\.role === "staff"/);
+  assert.match(next, /"\/management"/);
+  assert.match(next, /Geen toegang|geen toegang/);
+  assert.doesNotMatch(next, /createAdminClient|service_role|SUPABASE_SECRET_KEY/);
+});
+
+test("the MFA login gateway does not bypass second-factor validation", () => {
+  const context = read("src/lib/staff-session.ts");
+  const authActions = read("src/components/dashboard/auth-actions.ts");
+  assert.match(context, /currentLevel !== "aal2"/);
+  assert.match(context, /redirect\("\/security\/mfa"\)/);
+  assert.match(authActions, /redirect\("\/security\/mfa"\)/);
+});
+
+test("reserve authenticator onboarding stays separate from successful login", () => {
+  const mfa = read("src/app/security/mfa/page.tsx");
+  assert.match(mfa, /setEnrollment\(null\)/);
+  assert.match(mfa, /Reserve-authenticator toevoegen/);
+  assert.match(mfa, /window\.location\.replace\("\/auth\/continue"\)/);
+});
