@@ -8,9 +8,6 @@ import { createClient } from "@/lib/supabase/client";
 type Factor = { id: string; friendly_name?: string | null };
 type Enrollment = { id: string; qrCode: string; secret: string };
 
-const RECOVERY_CODES_ENABLED =
-  process.env.NEXT_PUBLIC_ENABLE_RECOVERY_CODES === "true";
-
 export default function SecurityMfaPage() {
   const supabase = useMemo(() => createClient(), []);
   const [loaded, setLoaded] = useState(false);
@@ -19,9 +16,6 @@ export default function SecurityMfaPage() {
   const [aal2, setAal2] = useState(false);
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [code, setCode] = useState("");
-  const [recoveryCode, setRecoveryCode] = useState("");
-  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
-  const [showRecovery, setShowRecovery] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -115,46 +109,6 @@ export default function SecurityMfaPage() {
     setCode("");
   }
 
-  async function useRecoveryCode(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!RECOVERY_CODES_ENABLED) return;
-
-    setBusy(true);
-    setMessage("");
-    const result = await supabase.auth.mfa.recoveryCodes.verify({
-      code: recoveryCode.trim(),
-    });
-    setBusy(false);
-
-    if (result.error) {
-      setMessage("Herstelcode ongeldig of al gebruikt.");
-      return;
-    }
-
-    setRecoveryCode("");
-    setShowRecovery(false);
-    setMessage("Herstelcode geaccepteerd. Deze code kan niet opnieuw worden gebruikt.");
-    await load();
-  }
-
-  async function generateRecoveryCodes() {
-    if (!RECOVERY_CODES_ENABLED || !aal2) return;
-
-    setBusy(true);
-    setMessage("");
-    const { data, error } = await supabase.auth.mfa.recoveryCodes.generate();
-    setBusy(false);
-
-    if (error || !data?.codes) {
-      setMessage("Herstelcodes zijn niet beschikbaar op deze server. Gebruik een reserve-authenticator.");
-      return;
-    }
-
-    // Plaintext codes exist in memory only and disappear when leaving this page.
-    setRecoveryCodes(data.codes);
-    setMessage("Bewaar deze codes nu veilig. Je kunt ze later niet opnieuw bekijken.");
-  }
-
   const canEnroll = factors.length === 0 || aal2;
   const showVerification = !!enrollment || (!aal2 && factors.length > 0);
 
@@ -189,7 +143,7 @@ export default function SecurityMfaPage() {
               {factors.length ? "Reserve-authenticator toevoegen" : "Authenticator instellen"}
             </button>
             <p className="mt-2 text-xs text-[#6b675e]">
-              Gebruik een authenticator-app. Bewaar je tweede factor op een ander apparaat.
+              Gebruik een authenticator-app. Registreer na de eerste aanmelding ook een tweede authenticator als hersteloptie.
             </p>
           </div>
         ) : null}
@@ -242,54 +196,9 @@ export default function SecurityMfaPage() {
           </form>
         ) : null}
 
-        {loaded && !aal2 && factors.length > 0 && RECOVERY_CODES_ENABLED ? (
-          <div className="mt-5">
-            <button type="button" className="text-sm font-bold underline" onClick={() => setShowRecovery(!showRecovery)}>
-              Ik heb een eenmalige herstelcode
-            </button>
-            {showRecovery ? (
-              <form className="mt-3 space-y-3" onSubmit={useRecoveryCode}>
-                <label className="block text-sm">
-                  Herstelcode
-                  <input
-                    autoComplete="off"
-                    value={recoveryCode}
-                    onChange={(event) => setRecoveryCode(event.target.value)}
-                    className="mt-2 w-full rounded-xl border p-3"
-                    required
-                  />
-                </label>
-                <button type="submit" disabled={busy} className="w-full rounded-xl bg-[#171714] p-3 text-white">
-                  Eenmalige code gebruiken
-                </button>
-              </form>
-            ) : null}
-          </div>
-        ) : null}
-
-        {loaded && aal2 && RECOVERY_CODES_ENABLED ? (
-          <div className="mt-6 border-t border-black/10 pt-5">
-            <h2 className="text-lg font-bold">Eenmalige herstelcodes</h2>
-            <p className="mt-1 text-sm">Een nieuwe set vervangt eventueel eerder gemaakte codes.</p>
-            <button type="button" disabled={busy} onClick={generateRecoveryCodes} className="mt-3 rounded-xl border border-black/25 px-4 py-3 font-semibold">
-              Nieuwe herstelcodes maken
-            </button>
-            {recoveryCodes ? (
-              <div className="mt-4 rounded-xl bg-[#f3efe5] p-4">
-                <strong className="text-sm">Sla ze nu op in een wachtwoordkluis:</strong>
-                <ul className="mt-2 space-y-1 font-mono text-sm">
-                  {recoveryCodes.map((value, index) => (
-                    <li key={index}>{value}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
         {message ? <p role="status" className="mt-5 rounded-xl bg-[#f3efe5] p-3 text-sm">{message}</p> : null}
         <p className="mt-7 text-xs text-[#6b675e]">
-          Beveiligingscodes zijn persoonlijk. Deel ze nooit via WhatsApp of e-mail.
+          Gebruik bij verlies van je hoofdtelefoon je tweede authenticator. Deel codes nooit met anderen.
         </p>
       </section>
     </main>
