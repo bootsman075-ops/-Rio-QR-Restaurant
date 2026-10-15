@@ -53,7 +53,12 @@ export default function SecurityMfaPage() {
   }, [supabase]);
 
   useEffect(() => {
-    void load();
+    // Schedule the initial network request after the effect setup phase.
+    // React state is updated only after the awaited Auth requests complete.
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [load]);
 
   async function verifyTotp(event: FormEvent<HTMLFormElement>) {
