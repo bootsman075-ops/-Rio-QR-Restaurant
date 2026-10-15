@@ -137,6 +137,24 @@ export default function SecurityMfaPage() {
           </p>
         ) : null}
 
+        {loaded && aal2 && factors.length < 2 ? (
+          <p role="status" className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm">
+            <strong>Reserve-authenticator ontbreekt.</strong> Je eerste authenticator werkt,
+            maar als je dat apparaat verliest kun je de beheertoegang kwijtraken.
+            Voeg hieronder een tweede authenticator toe, bij voorkeur op een ander
+            apparaat, en controleer dat de zescijferige code werkt.
+            Verplicht beheer op basis van MFA mag pas definitief worden uitgerold
+            nadat deze reserveoptie getest is.
+          </p>
+        ) : null}
+
+        {loaded && aal2 && factors.length >= 2 ? (
+          <p role="status" className="mt-5 rounded-xl bg-[#edf6ed] p-4 text-sm">
+            Twee authenticatoren geregistreerd. Controleer vóór livegang ook
+            dat je met je reserve-authenticator opnieuw kunt aanmelden.
+          </p>
+        ) : null}
+
         {loaded && canEnroll && !enrollment ? (
           <div className="mt-5">
             <button
