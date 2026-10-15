@@ -9,14 +9,14 @@ const ALLOWED_ROLES = new Set(["restaurant_owner", "manager", "staff"]);
 
 function inviteRedirectUrl() {
   if (process.env.NEXT_PUBLIC_APP_URL) {
-    return new URL("/auth/callback?next=/auth/set-password", process.env.NEXT_PUBLIC_APP_URL).toString();
+    return new URL("/auth/set-password", process.env.NEXT_PUBLIC_APP_URL).toString();
   }
 
   if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}/auth/callback?next=/auth/set-password`;
+    return `https://${process.env.VERCEL_URL}/auth/set-password`;
   }
 
-  return "http://localhost:3000/auth/callback?next=/auth/set-password";
+  return "http://localhost:3000/auth/set-password";
 }
 
 export async function inviteRestaurantUser(formData: FormData) {
@@ -64,7 +64,9 @@ export async function inviteRestaurantUser(formData: FormData) {
     });
 
   if (membershipError) {
-    await admin.auth.admin.deleteUser(data.user.id);
+    // Never delete an Auth identity on a membership error: the invited
+    // address may already belong to another restaurant or an existing admin.
+    // Leave the identity untouched; reconcile the membership manually.
     redirect("/platform?invite=membership");
   }
 

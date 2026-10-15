@@ -1,4 +1,5 @@
 import "server-only";
+import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Enums } from "@/types/database";
@@ -26,13 +27,19 @@ function firstRelation<T>(value: T | T[] | null | undefined): T | null {
 export async function getStaffContext(): Promise<StaffContext | null> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  // getUser validates the session with the Auth server, unlike getSession.
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
   if (userError || !user) {
     return null;
+  }
+
+  const { data: assurance, error: assuranceError } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  // Fail closed: even valid password sessions do not grant dashboard access.
+  if (assuranceError || assurance?.currentLevel !== "aal2") {
+    redirect("/security/mfa");
   }
 
   const { data: platformAdmin } = await supabase
@@ -54,9 +61,7 @@ export async function getStaffContext(): Promise<StaffContext | null> {
 
   const { data: membership, error: membershipError } = await supabase
     .from("user_restaurants")
-    .select(
-      "restaurant_id, role, restaurants!inner(name, slug, is_active)"
-    )
+    .select("restaurant_id, role, restaurants!inner(name, slug, is_active)")
     .eq("user_id", user.id)
     .eq("active", true)
     .limit(1)

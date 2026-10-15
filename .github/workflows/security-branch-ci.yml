@@ -25,5 +25,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Verify recovery, invite, and MFA security contracts
+        run: node --test scripts/auth-security-contract.test.mjs
       - run: npm run lint
       - run: npm run build
+      - name: Block high-severity production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Verify bounded development advisory exception tests
+        run: node --test scripts/check-development-audit.test.mjs
+      - name: Audit development dependencies (block new critical/high findings)
+        run: |
+          # npm exits nonzero for advisories. Preserve the JSON report, then
+          # enforce the EXACT known GHSA and transitive dependency chain.
+          # Unknown advisories, malformed reports and expired exceptions fail.
+          npm audit --json --audit-level=high > "$RUNNER_TEMP/rio-audit.json" || true
+          node scripts/check-development-audit.mjs "$RUNNER_TEMP/rio-audit.json"
