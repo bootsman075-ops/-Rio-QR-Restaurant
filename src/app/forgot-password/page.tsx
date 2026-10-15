@@ -18,22 +18,24 @@ export default function ForgotPasswordPage() {
 
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
-      { redirectTo: `${window.location.origin}/reset-password` },
+      { redirectTo: `${window.location.origin}/auth/callback?next=/reset-password` },
     );
 
     setSending(false);
 
+    if (error && error.status === 429) {
+      setMessage("Er zijn te veel verzoeken verstuurd. Probeer het later opnieuw.");
+      return;
+    }
+
     if (error) {
-      setMessage(
-        error.status === 429
-          ? "Er zijn te veel verzoeken verstuurd. Wacht een paar minuten en probeer het daarna opnieuw."
-          : "De resetmail kon niet worden verstuurd. Probeer het opnieuw.",
-      );
+      // Do not disclose whether an address has an account.
+      setMessage("Aanvraag ontvangen. Controleer je mailbox en probeer het later opnieuw als er niets aankomt.");
       return;
     }
 
     setMessage(
-      "De resetmail is verstuurd. Open alleen de nieuwste e-mail en klik één keer op de resetlink.",
+      "Als dit e-mailadres een account heeft, ontvang je een herstelmail. Gebruik alleen de nieuwste link.",
     );
   }
 
