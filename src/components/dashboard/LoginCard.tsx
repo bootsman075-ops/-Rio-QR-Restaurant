@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type LoginCardProps = {
   title: string;
   subtitle: string;
@@ -145,6 +147,10 @@ export default function LoginCard({
 
             <button type="submit">Inloggen</button>
           </form>
+
+          <Link href="/forgot-password" className="mt-5 inline-block text-sm font-bold underline underline-offset-4">
+            Wachtwoord vergeten?
+          </Link>
 
           {wrongCredentials && (
             <p className="error">E-mailadres of wachtwoord is niet correct.</p>
