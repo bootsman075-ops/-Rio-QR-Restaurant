@@ -75,3 +75,16 @@ test("reserve authenticator onboarding stays separate from successful login", ()
   assert.match(mfa, /Reserve-authenticator toevoegen/);
   assert.match(mfa, /window\.location\.replace\("\/auth\/continue"\)/);
 });
+
+
+test("Rio styling is tenant-scoped and does not change authorization", () => {
+  const dashboard = read("src/app/management/page.tsx");
+  const theme = read("src/app/management/rio-theme.css");
+  assert.match(dashboard, /context\.restaurantSlug === "rio-deventer"/);
+  assert.match(dashboard, /rio-management/);
+  assert.match(dashboard, /R<span>·<\/span>I<span>·<\/span>O/);
+  assert.match(dashboard, /requirePermissionContext\("management\.access"\)/);
+  assert.match(dashboard, /loadOverview\(context\.restaurantId\)/);
+  assert.match(theme, /\.rio-management \.staff-nav-link/);
+  assert.doesNotMatch(theme, /(^|\n)body\s*\{/);
+});
