@@ -27,5 +27,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
-      - name: Check high-severity dependency vulnerabilities
+      - name: Block high-severity production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Flag remaining development dependency advisories
         run: npm audit --audit-level=high
