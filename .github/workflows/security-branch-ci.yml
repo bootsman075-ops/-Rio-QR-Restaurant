@@ -25,6 +25,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Verify recovery, invite, and MFA security contracts
+        run: node --test scripts/auth-security-contract.test.mjs
       - run: npm run lint
       - run: npm run build
       - name: Block high-severity production dependencies
