@@ -7,5 +7,14 @@ export function createClient() {
   return createBrowserClient<Database>(
     getSupabaseUrl(),
     getSupabasePublishableKey(),
+    {
+      auth: {
+        // Experimental recovery codes stay disabled unless explicitly verified
+        // against the deployed Supabase Auth server and enabled on purpose.
+        experimental: {
+          recoveryCodes: process.env.NEXT_PUBLIC_ENABLE_RECOVERY_CODES === "true",
+        },
+      },
+    },
   );
 }
