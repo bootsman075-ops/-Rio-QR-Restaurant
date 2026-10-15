@@ -63,3 +63,12 @@ Wijzigingen bevinden zich alleen op `security/account-recovery-mfa-20261015` en 
 - Een administratieve herstelprocedure bij verlies van alle authenticators vereist strenge identiteitsverificatie, logging en notificatie; deze procedure is nog niet gebouwd en mag niet worden voorgesteld als werkend.
 
 **Livebesluit blijft NO-GO:** de status van Supabase is `INACTIVE`, de databasewijziging is niet toegepast en een echte browser-/accounttest met de drie rollen ontbreekt.
+
+
+## Hercontrole 15 oktober 2026 – account recovery en database
+- Het herstelverzoek voor het bestaande Supabase-project `tiylplysdpvikexptedp` is **geaccepteerd** (`success: true`). De laatst geobserveerde status was `COMING_UP`, dus dit is **nog geen bevestiging** dat de database weer bruikbaar is.
+- Zolang het project niet `ACTIVE` is, zijn lege tabellijsten, lege migratielijsten en security-advisor-resultaten **geen sluitend bewijs** over het databasemodel of de beveiliging.
+- Vercel toont een `READY`-preview voor commit `4b27a5571eb7b089c292d7ad4d29525cc33bbb55` op de beveiligingstak; `target: null` betekent geen bevestigde productie-uitrol.
+- GitHub Actions op dezelfde commit: `npm ci`, ESLint, Next.js-build en productieafhankelijkhedenaudit geslaagd; **volledige dependency-audit gefaald** op ontwikkelafhankelijkheden. CI blijft rood; niet stilzwijgend negeren.
+- **Nieuw gevonden blocker:** `/reset-password` laat `updateUser({ password })` ook toe als slechts een bestaande gebruikerssessie is vastgesteld (`getUser()`), zonder bewijs van een *recente* geldige herstelactie of AAL2. De serveractie `/auth/set-password/actions.ts` laat eveneens een bestaande sessie met AAL1 toe. Daardoor is de wachtwoordwijziging niet aantoonbaar met MFA of een eenmalige, specifiek voor herstel bedoelde capability afgeschermd. Herontwerp en test beide routes (inclusief geldige/verlopen/hergebruikte resetlink, invites, bestaande gebruikers, MFA, sessiediefstal) vóór livegang.
+- **NO-GO blijft van kracht**: geen migraties of account-/rolwijzigingen toepassen voordat herstel en tests van de echte database, veilige recovery flows en autorisatie aantoonbaar slagen.
