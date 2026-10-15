@@ -1,0 +1,45 @@
+name: One-off dependency security refresh
+
+on:
+  push:
+    branches:
+      - security/account-recovery-mfa-20261015
+
+permissions:
+  contents: write
+
+jobs:
+  patch-lockfile:
+    if: "github.event.head_commit.message != 'chore: refresh vulnerable dependency lockfile'"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/account-recovery-mfa-20261015
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Patch framework and lockfile without force-downgrades
+        run: |
+          npm install --package-lock-only --save-exact next@16.4.1
+          npm install --package-lock-only --save-dev --save-exact eslint-config-next@16.4.1
+          npm audit fix --package-lock-only || true
+          npm ci
+          npm run lint
+          npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_test
+          SUPABASE_SECRET_KEY: sb_secret_test
+      - name: Commit only tested dependency manifests
+        run: |
+          git config user.name "rio-security-bot"
+          git config user.email "security-bot@users.noreply.github.com"
+          if ! git diff --quiet -- package.json package-lock.json; then
+            git add package.json package-lock.json
+            git commit -m "chore: refresh vulnerable dependency lockfile"
+            git push origin HEAD:security/account-recovery-mfa-20261015
+          fi
