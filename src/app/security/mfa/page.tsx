@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -58,19 +58,14 @@ export default function SecurityMfaPage() {
     setLoaded(true);
   }, [supabase]);
 
-  // React's effect must not run an auth request repeatedly on every render.
-  // The browser client is a singleton for the mounted component.
-  useMemo(() => {
-    if (typeof window !== "undefined") {
-      queueMicrotask(() => void load());
-    }
-    return null;
+  useEffect(() => {
+    void load();
   }, [load]);
 
   async function verifyTotp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const targetId = enrollment?.id ?? factorId;
-    if (!targetId || !/^\\d{6}$/.test(code.trim())) {
+    if (!targetId || !/^\d{6}$/.test(code.trim())) {
       setMessage("Vul de zes cijfers uit je authenticator-app in.");
       return;
     }
