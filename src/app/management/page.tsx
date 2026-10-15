@@ -12,6 +12,7 @@ import {
   zonedToIso,
 } from "@/lib/reservations";
 import { createClient } from "@/lib/supabase/server";
+import "./rio-theme.css";
 
 export const dynamic = "force-dynamic";
 
@@ -91,6 +92,7 @@ export default async function ManagementPage() {
   }
 
   const { today, data } = await loadOverview(context.restaurantId);
+  const isRio = context.restaurantSlug === "rio-deventer";
   const paths = DASHBOARD_PATHS.management;
 
   const modules = [
@@ -305,14 +307,25 @@ export default async function ManagementPage() {
         }
       `}</style>
 
-      <main className="staff-page">
+      <main className={`staff-page${isRio ? " rio-management" : ""}`}>
         <div className="wrap">
+          {isRio ? (
+            <div className="rio-masthead">
+              <span className="rio-masthead-mark" aria-label="R.I.O. Deventer">
+                R<span>·</span>I<span>·</span>O<span>·</span>
+              </span>
+              <span className="rio-masthead-caption">Southern Europe · Deventer aan de IJssel</span>
+            </div>
+          ) : null}
           <DashboardNav area="management" current="overview" />
 
           <header className="top">
             <p className="eyebrow">{context.restaurantName ?? "Restaurant"}</p>
             <h1>Management</h1>
             <p className="subtitle">Overzicht van {formatLongDate(today)}.</p>
+            {isRio ? (
+              <p className="rio-hero-slogan">Dine. Share. Stay longer. · Alles voor de dagelijkse restaurantoperatie op één plek.</p>
+            ) : null}
           </header>
 
           {data ? (
