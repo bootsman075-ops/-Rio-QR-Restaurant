@@ -22,30 +22,9 @@ export async function dashboardLogin(formData: FormData) {
     redirect("/login?error=credentials");
   }
 
-  const { data: platformAdmin } = await supabase
-    .from("platform_admins")
-    .select("user_id")
-    .eq("user_id", data.user.id)
-    .maybeSingle();
-
-  if (platformAdmin) {
-    redirect("/platform");
-  }
-
-  const { data: membership } = await supabase
-    .from("user_restaurants")
-    .select("restaurant_id, role")
-    .eq("user_id", data.user.id)
-    .eq("active", true)
-    .limit(1)
-    .maybeSingle();
-
-  if (!membership) {
-    await supabase.auth.signOut();
-    redirect("/login?error=access");
-  }
-
-  redirect(membership.role === "staff" ? "/staff" : "/management");
+  // No role, tenant data or privileged page is accessed until AAL2 is proved.
+  // /security/mfa also handles first-time TOTP setup.
+  redirect("/security/mfa");
 }
 
 export async function logout() {
