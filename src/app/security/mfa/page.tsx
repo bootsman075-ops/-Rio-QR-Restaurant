@@ -83,8 +83,9 @@ export default function SecurityMfaPage() {
 
     setCode("");
     setEnrollment(null);
-    setMessage("Tweestapsverificatie gelukt. Je account is nu beveiligd.");
-    await load();
+    // Use a full navigation so Supabase's updated AAL2 cookies are sent with
+    // a fresh server request. The server checks roles and restaurant scope.
+    window.location.replace("/auth/continue");
   }
 
   async function startEnrollment() {
@@ -133,7 +134,7 @@ export default function SecurityMfaPage() {
 
         {loaded && aal2 ? (
           <p className="mt-5 rounded-xl bg-[#edf6ed] p-3 text-sm">
-            Tweestapsverificatie bevestigd. <Link href="/login" className="font-bold underline">Naar je dashboard</Link>
+            Tweestapsverificatie bevestigd. <Link href="/auth/continue" className="font-bold underline">Naar je dashboard</Link>
           </p>
         ) : null}
 
@@ -143,8 +144,8 @@ export default function SecurityMfaPage() {
             maar als je dat apparaat verliest kun je de beheertoegang kwijtraken.
             Voeg hieronder een tweede authenticator toe, bij voorkeur op een ander
             apparaat, en controleer dat de zescijferige code werkt.
-            Verplicht beheer op basis van MFA mag pas definitief worden uitgerold
-            nadat deze reserveoptie getest is.
+            Voeg deze reserveoptie toe wanneer je hoofd-authenticator en
+            de toegang tot je restaurantdashboard werken.
           </p>
         ) : null}
 
@@ -173,12 +174,21 @@ export default function SecurityMfaPage() {
 
         {enrollment ? (
           <div className="mt-5 space-y-3">
-            <h2 className="text-lg font-bold">Scan deze QR-code</h2>
+            <h2 className="text-lg font-bold">Scan de QR-code voor deze authenticator</h2>
+            <p className="text-sm leading-6">
+              Gebruik in je authenticator-app uitsluitend het nieuw toegevoegde
+              Rio QR-account dat bij de QR-code hieronder hoort.
+              Codes van een oudere QR-code zullen niet werken.
+            </p>
             {/* Auth levert deze QR rechtstreeks aan de ingelogde gebruiker. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={enrollment.qrCode} alt="QR-code voor authenticator" className="h-44 w-44" />
             <p className="text-xs">Lukt scannen niet? Voeg deze sleutel handmatig toe:</p>
             <code className="block break-all rounded-lg bg-[#f3efe5] p-3 text-sm">{enrollment.secret}</code>
+            <button type="button" className="text-sm font-semibold underline"
+              onClick={() => { setEnrollment(null); setCode(""); setMessage("Deze configuratie is verlaten. Gebruik geen codes van deze QR-code; je bestaande geverifieerde authenticator blijft intact."); }}>
+              Deze QR-code niet gebruiken
+            </button>
           </div>
         ) : null}
 
@@ -221,7 +231,8 @@ export default function SecurityMfaPage() {
 
         {message ? <p role="status" className="mt-5 rounded-xl bg-[#f3efe5] p-3 text-sm">{message}</p> : null}
         <p className="mt-7 text-xs text-[#6b675e]">
-          Gebruik bij verlies van je hoofdtelefoon je tweede authenticator. Deel codes nooit met anderen.
+          Gebruik bij verlies van je hoofd-authenticator je reserve-authenticator.
+          Deel QR-codes, geheime sleutels en zescijferige codes nooit met anderen.
         </p>
       </section>
     </main>
