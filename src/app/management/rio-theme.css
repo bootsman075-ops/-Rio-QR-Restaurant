@@ -1,0 +1,280 @@
+/* Restaurant-specific pilot skin, scoped to R.I.O. Deventer only.
+   Intentionally does not affect platform administration or other tenants. */
+.rio-management {
+  --rio-ink: #27342d;
+  --rio-olive: #4b5947;
+  --rio-clay: #a85b44;
+  --rio-ochre: #be8f57;
+  --rio-sand: #e9dac5;
+  --rio-cream: #fbf6ed;
+  --rio-muted: #706e62;
+  --rio-line: rgba(39, 52, 45, .13);
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 56% 30% at 98% 5%, rgba(224, 172, 111, .15), transparent 70%),
+    linear-gradient(180deg, #fbf6ed 0%, #f3ecdf 100%);
+  color: var(--rio-ink);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+
+.rio-management .wrap {
+  max-width: 1190px;
+}
+
+.rio-management .rio-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 0 0 21px;
+  margin-bottom: 23px;
+  border-bottom: 1px solid var(--rio-line);
+}
+
+.rio-management .rio-masthead-mark {
+  color: var(--rio-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: .08em;
+  line-height: 1;
+}
+
+.rio-management .rio-masthead-mark span {
+  color: var(--rio-clay);
+}
+
+.rio-management .rio-masthead-caption {
+  color: var(--rio-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.rio-management .staff-nav-bar {
+  margin-bottom: 24px;
+}
+
+.rio-management .staff-nav-link {
+  background: rgba(255, 255, 255, .58);
+  border: 1px solid var(--rio-line);
+  color: var(--rio-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rio-management .staff-nav-link:hover {
+  border-color: var(--rio-clay);
+  background: #fff8ed;
+}
+
+.rio-management .staff-nav-link[aria-current="page"] {
+  background: var(--rio-ink);
+  border-color: var(--rio-ink);
+  color: #fffaf0;
+}
+
+.rio-management .staff-role,
+.rio-management .staff-logout {
+  border-color: var(--rio-line);
+  color: var(--rio-ink);
+}
+
+.rio-management .staff-role.is-manager {
+  border-color: rgba(168, 91, 68, .28);
+  background: rgba(168, 91, 68, .09);
+}
+
+.rio-management .top {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(66, 76, 59, .13);
+  border-radius: 26px;
+  padding: clamp(28px, 5vw, 55px);
+  margin-bottom: 40px;
+  background:
+    linear-gradient(114deg, #324237 0%, #425044 58%, #65705a 100%);
+  color: #fffaf0;
+  box-shadow: 0 18px 40px rgba(44, 54, 42, .12);
+}
+
+.rio-management .top::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 440px;
+  height: 440px;
+  border: 1px solid rgba(255, 242, 218, .27);
+  border-radius: 50%;
+  right: -85px;
+  top: -180px;
+  background: radial-gradient(circle at 52% 50%, rgba(230, 188, 123, .18) 0 25%, transparent 60%);
+  box-shadow: 0 0 0 46px rgba(255, 251, 242, .035), 0 0 0 94px rgba(255, 251, 242, .025);
+}
+
+.rio-management .top .eyebrow {
+  color: #e9c89d;
+  font-size: 11px;
+  letter-spacing: .22em;
+}
+
+.rio-management .top h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(42px, 6vw, 76px);
+  line-height: 1.07;
+  letter-spacing: -.035em;
+}
+
+.rio-management .top .subtitle {
+  color: #f3e9d8;
+  font-size: 15px;
+}
+
+.rio-management .rio-hero-slogan {
+  margin: 16px 0 0;
+  max-width: 600px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #f1dfc6;
+  letter-spacing: .06em;
+}
+
+.rio-management .section-title {
+  color: var(--rio-olive);
+  font-size: 11px;
+  letter-spacing: .19em;
+}
+
+.rio-management .stats {
+  gap: 16px;
+  margin-bottom: 42px;
+}
+
+.rio-management .stat {
+  position: relative;
+  min-height: 150px;
+  border: 1px solid var(--rio-line);
+  border-radius: 19px;
+  background: #fffcf6;
+  padding: 23px;
+  box-shadow: 0 9px 30px rgba(48, 54, 40, .045);
+}
+
+.rio-management .stat::before {
+  content: "";
+  display: block;
+  width: 29px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--rio-clay);
+  margin-bottom: 19px;
+}
+
+.rio-management .stat:nth-child(2)::before { background: #8d9878; }
+.rio-management .stat:nth-child(3)::before { background: #bd8b5c; }
+.rio-management .stat:nth-child(4)::before { background: #80969c; }
+
+.rio-management .stat-label {
+  color: var(--rio-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rio-management .stat-value {
+  color: var(--rio-ink);
+  font-size: clamp(31px, 3.2vw, 41px);
+  font-weight: 650;
+  letter-spacing: -.045em;
+}
+
+.rio-management .stat-note {
+  color: var(--rio-muted);
+  line-height: 1.5;
+}
+
+.rio-management .modules {
+  gap: 17px;
+  margin-bottom: 30px;
+}
+
+.rio-management .module {
+  min-height: 210px;
+  border-radius: 20px;
+  border: 1px solid var(--rio-line);
+  padding: 27px;
+  background: #fffcf6;
+  box-shadow: 0 8px 25px rgba(48, 54, 40, .04);
+}
+
+.rio-management .module:hover,
+.rio-management .module:focus-visible {
+  border-color: rgba(168, 91, 68, .6);
+  box-shadow: 0 16px 36px rgba(48, 54, 40, .11);
+}
+
+.rio-management .module:focus-visible,
+.rio-management .staff-nav-link:focus-visible {
+  outline: 3px solid var(--rio-clay);
+  outline-offset: 3px;
+}
+
+.rio-management .module-title {
+  color: var(--rio-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  line-height: 1.18;
+}
+
+.rio-management .module-text {
+  color: var(--rio-muted);
+  line-height: 1.65;
+}
+
+.rio-management .module-foot {
+  color: var(--rio-clay);
+}
+
+.rio-management .module-stat {
+  color: var(--rio-clay);
+}
+
+.rio-management .future {
+  border: 1px solid var(--rio-line);
+  background: rgba(255, 252, 246, .65);
+  border-radius: 18px;
+}
+
+.rio-management .future strong { color: var(--rio-ink); }
+
+.rio-management .warning {
+  border-color: rgba(168, 91, 68, .3);
+  color: var(--rio-ink);
+  background: #fffaf1;
+}
+
+@media (max-width: 700px) {
+  .rio-management.staff-page { padding: 24px 14px 48px; }
+  .rio-management .rio-masthead { gap: 12px; }
+  .rio-management .rio-masthead-mark { font-size: 27px; }
+  .rio-management .rio-masthead-caption { font-size: 9px; letter-spacing: .12em; }
+  .rio-management .top { margin-bottom: 30px; border-radius: 20px; }
+  .rio-management .top::after { width: 240px; height: 240px; top: -100px; right: -110px; }
+  .rio-management .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .rio-management .stat { padding: 17px; min-height: 140px; }
+  .rio-management .modules { grid-template-columns: 1fr; }
+  .rio-management .module { min-height: 170px; }
+}
+
+@media (max-width: 380px) {
+  .rio-management .stats { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rio-management .module { transition: none; }
+  .rio-management .module:hover { transform: none; }
+}
