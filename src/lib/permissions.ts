@@ -28,11 +28,13 @@ export function can(role: StaffRole | null, permission: Permission) {
     return false;
   }
 
-  if (
-    role === "platform_admin" ||
-    role === "restaurant_owner" ||
-    role === "manager"
-  ) {
+  // Platformbeheer is bewust gescheiden van restaurantbeheer.
+  // Een platform-admin krijgt dus niet automatisch restaurantrechten.
+  if (role === "platform_admin") {
+    return false;
+  }
+
+  if (role === "restaurant_owner" || role === "manager") {
     return true;
   }
 
@@ -53,7 +55,7 @@ export async function requirePermissionContext(
   }
 
   if (!can(context.role, permission)) {
-    redirect("/staff");
+    redirect(context.role === "platform_admin" ? "/platform" : "/staff");
   }
 
   return context;
