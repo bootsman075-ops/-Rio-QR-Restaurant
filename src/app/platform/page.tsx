@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { logout } from "@/components/dashboard/auth-actions";
 import { getStaffContext } from "@/lib/staff-session";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { inviteRestaurantUser } from "./invite-actions";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +28,6 @@ export default async function PlatformPage({ searchParams }: Props) {
     redirect(context.role === "staff" ? "/staff" : "/management");
   }
 
-  const supabase = await createClient();
   const admin = createAdminClient();
 
   const [
@@ -37,7 +35,7 @@ export default async function PlatformPage({ searchParams }: Props) {
     { data: memberships, error: membershipsError },
     { data: authUsers, error: authUsersError },
   ] = await Promise.all([
-    supabase
+    admin
       .from("restaurants")
       .select("id, name, slug, city, is_active")
       .order("name", { ascending: true }),
