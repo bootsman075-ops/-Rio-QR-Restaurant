@@ -106,6 +106,17 @@ export default function LoginCard({
           opacity: .88;
         }
 
+        .forgot-link {
+          display: block;
+          margin-top: 14px;
+          text-align: center;
+          color: #5f5a50;
+          font-size: 14px;
+          font-weight: 700;
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+
         .error {
           margin: 16px 0 0;
           padding: 12px 14px;
@@ -145,6 +156,10 @@ export default function LoginCard({
 
             <button type="submit">Inloggen</button>
           </form>
+
+          <a className="forgot-link" href="/forgot-password">
+            Wachtwoord vergeten?
+          </a>
 
           {wrongCredentials && (
             <p className="error">E-mailadres of wachtwoord is niet correct.</p>
