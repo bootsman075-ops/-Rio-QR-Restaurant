@@ -1,5 +1,23 @@
-import { redirect } from "next/navigation";
+import LoginCard from "@/components/dashboard/LoginCard";
+import { managementLogin } from "@/components/dashboard/auth-actions";
 
-export default function ManagementLoginPage() {
-  redirect("/login");
+type ManagementLoginPageProps = {
+  searchParams: Promise<{
+    error?: string;
+  }>;
+};
+
+export default async function ManagementLoginPage({
+  searchParams,
+}: ManagementLoginPageProps) {
+  const params = await searchParams;
+
+  return (
+    <LoginCard
+      title="Management inloggen"
+      subtitle="Log in met het managementaccount van uw restaurant. Een bestaande personeelslogin wordt automatisch vervangen."
+      action={managementLogin}
+      error={params.error}
+    />
+  );
 }
