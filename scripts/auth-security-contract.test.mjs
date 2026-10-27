@@ -24,10 +24,17 @@ test("invitation action checks purpose-specific one-time proof before changing p
   assert.doesNotMatch(invitationAction, /\.getUser\(|\.setSession\(/);
 });
 
-test("reset email template sends one-time recovery hash to expected page", () => {
-  assert.match(recoveryEmail, /\{\{ \.RedirectTo \}\}\?token_hash=\{\{ \.TokenHash \}\}&amp;type=recovery/);
-  assert.match(forgotPage, /\$\{window\.location\.origin\}\/reset-password/);
-  assert.doesNotMatch(recoveryEmail, /\{\{ \.ConfirmationURL \}\}/);
+test("recovery uses Supabase PKCE confirmation URL and verified callback", () => {
+  const callback = read("src/app/auth/callback/route.ts");
+  const sessionAction = read("src/app/reset-password/session-actions.ts");
+  assert.match(recoveryEmail, /\{\{ \.ConfirmationURL \}\}/);
+  assert.match(forgotPage, /\/auth\/callback\?next=%2Freset-password/);
+  assert.match(callback, /exchangeCodeForSession/);
+  assert.match(callback, /rio_recovery_flow/);
+  assert.match(sessionAction, /rio_recovery_flow/);
+  assert.match(sessionAction, /auth\.getUser\(\)/);
+  assert.match(sessionAction, /updateUser/);
+  assert.match(sessionAction, /signOut\(\{ scope: "global" \}\)/);
 });
 
 test("invite template routes to matching account activation page", () => {
