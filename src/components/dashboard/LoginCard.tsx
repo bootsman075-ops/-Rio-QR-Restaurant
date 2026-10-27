@@ -1,21 +1,18 @@
 type LoginCardProps = {
   title: string;
   subtitle: string;
-  passwordLabel: string;
   action: (formData: FormData) => Promise<void>;
   error?: string;
 };
 
-/** Login form shared by /staff/login and /management/login. */
 export default function LoginCard({
   title,
   subtitle,
-  passwordLabel,
   action,
   error,
 }: LoginCardProps) {
-  const wrongPassword = error === "1";
-  const configurationError = error === "config";
+  const wrongCredentials = error === "credentials";
+  const noAccess = error === "access";
 
   return (
     <>
@@ -72,7 +69,7 @@ export default function LoginCard({
 
         label {
           display: block;
-          margin-bottom: 8px;
+          margin: 14px 0 8px;
           font-size: 14px;
           font-weight: 700;
         }
@@ -95,7 +92,7 @@ export default function LoginCard({
         button {
           width: 100%;
           height: 52px;
-          margin-top: 16px;
+          margin-top: 20px;
           border: 0;
           border-radius: 14px;
           background: #171714;
@@ -109,6 +106,17 @@ export default function LoginCard({
           opacity: .88;
         }
 
+        .forgot-link {
+          display: block;
+          margin-top: 14px;
+          text-align: center;
+          color: #5f5a50;
+          font-size: 14px;
+          font-weight: 700;
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+
         .error {
           margin: 16px 0 0;
           padding: 12px 14px;
@@ -120,34 +128,46 @@ export default function LoginCard({
 
       <main className="login-page">
         <section className="login-card">
-          <p className="eyebrow">R.I.O. Deventer</p>
+          <p className="eyebrow">vantorstudio Restaurant Platform</p>
 
           <h1>{title}</h1>
 
           <p className="subtitle">{subtitle}</p>
 
           <form action={action}>
-            <label htmlFor="password">{passwordLabel}</label>
+            <label htmlFor="email">E-mailadres</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              autoFocus
+            />
 
+            <label htmlFor="password">Wachtwoord</label>
             <input
               id="password"
               name="password"
               type="password"
               autoComplete="current-password"
               required
-              autoFocus
             />
 
             <button type="submit">Inloggen</button>
           </form>
 
-          {wrongPassword && (
-            <p className="error">Het ingevoerde wachtwoord is niet correct.</p>
+          <a className="forgot-link" href="/forgot-password">
+            Wachtwoord vergeten?
+          </a>
+
+          {wrongCredentials && (
+            <p className="error">E-mailadres of wachtwoord is niet correct.</p>
           )}
 
-          {configurationError && (
+          {noAccess && (
             <p className="error">
-              Deze login is nog niet correct geconfigureerd.
+              Dit account is nog niet aan een restaurant of platformrol gekoppeld.
             </p>
           )}
         </section>

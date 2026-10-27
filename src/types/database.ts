@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -113,6 +113,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       qr_tokens: {
         Row: {
@@ -334,11 +349,55 @@ export type Database = {
           },
         ]
       }
+      user_restaurants: {
+        Row: {
+          active: boolean
+          created_at: string
+          restaurant_id: string
+          role: Database["public"]["Enums"]["restaurant_user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          restaurant_id: string
+          role: Database["public"]["Enums"]["restaurant_user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          restaurant_id?: string
+          role?: Database["public"]["Enums"]["restaurant_user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_restaurants_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      create_service_request: {
+        Args: { p_request_type: string; p_token: string }
+        Returns: {
+          created_at: string
+          request_id: string
+          request_type: string
+          status: string
+        }[]
+      }
       resolve_qr_token: {
         Args: { p_token: string }
         Returns: {
@@ -376,6 +435,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "no_show"
+      restaurant_user_role: "restaurant_owner" | "manager" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -511,6 +571,7 @@ export const Constants = {
         "cancelled",
         "no_show",
       ],
+      restaurant_user_role: ["restaurant_owner", "manager", "staff"],
     },
   },
 } as const

@@ -8,11 +8,10 @@ import ReservationForm from "./ReservationForm";
 import { deleteReservation, setReservationStatus } from "./actions";
 import type { ReservationFormValues } from "./actions";
 import ConfirmSubmitButton from "@/components/ui/ConfirmSubmitButton";
-import { can } from "@/lib/permissions";
+import { can, requirePermissionContext } from "@/lib/permissions";
 import type { StaffRole } from "@/lib/staff-session";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import {
-  PILOT_RESTAURANT_SLUG,
   RESERVATION_STATUSES,
   RESERVATION_STATUS_LABELS,
   addDays,
@@ -80,11 +79,18 @@ function tableName(table: ReservationRow["tables"]) {
 
 /** Reservations list, filters and forms; used by /staff and /management. */
 export default async function ReservationsView({ area, role, params }: ReservationsViewProps) {
+  const context = await requirePermissionContext("reservations.manage");
+
+  if (!context.restaurantId) {
+    throw new Error("Geen restaurant gekoppeld aan dit account.");
+  }
+
   const basePath = DASHBOARD_PATHS[area].reservations;
   const canDelete = can(role, "reservations.delete");
 
   const supabaseConfigured =
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SECRET_KEY;
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   const statusFilter =
     params.status && isReservationStatus(params.status) ? params.status : "";
@@ -95,13 +101,13 @@ export default async function ReservationsView({ area, role, params }: Reservati
   let editing: ReservationRow | null = null;
   let loadError = false;
 
-  const supabase = supabaseConfigured ? createAdminClient() : null;
+  const supabase = supabaseConfigured ? await createClient() : null;
 
   if (supabase) {
     const { data, error } = await supabase
       .from("restaurants")
       .select("id, timezone")
-      .eq("slug", PILOT_RESTAURANT_SLUG)
+      .eq("id", context.restaurantId)
       .maybeSingle();
 
     if (error || !data) {
@@ -631,7 +637,7 @@ export default async function ReservationsView({ area, role, params }: Reservati
 
           <header className="top">
             <div>
-              <p className="eyebrow">R.I.O. Deventer</p>
+              <p className="eyebrow">{context.restaurantName ?? "Restaurant"}</p>
               <h1>Reserveringen</h1>
               <p className="subtitle">
                 Bekijk, voeg toe en wijzig reserveringen.

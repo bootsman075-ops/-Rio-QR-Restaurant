@@ -2,7 +2,8 @@ import LiveRefresh from "../LiveRefresh";
 import DashboardNav from "../DashboardNav";
 import type { DashboardArea } from "../areas";
 import { markRequestHandled } from "./actions";
-import { createClient } from "@supabase/supabase-js";
+import { requirePermissionContext } from "@/lib/permissions";
+import { createClient } from "@/lib/supabase/server";
 
 type ServiceRequest = {
   id: string;
@@ -38,22 +39,15 @@ function formatTime(value: string) {
 
 /** Open table service and bill requests; used by /staff and /management. */
 export default async function RequestsView({ area }: { area: DashboardArea }) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  const context = await requirePermissionContext("requests.handle");
 
   let requests: ServiceRequest[] = [];
-  let configurationMissing = false;
   let loadError = false;
 
-  if (!supabaseUrl || !secretKey) {
-    configurationMissing = true;
+  if (!context.restaurantId) {
+    loadError = true;
   } else {
-    const supabase = createClient(supabaseUrl, secretKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
+    const supabase = await createClient();
 
     const { data, error } = await supabase
       .from("service_requests")
@@ -67,6 +61,7 @@ export default async function RequestsView({ area }: { area: DashboardArea }) {
           label
         )
       `)
+      .eq("restaurant_id", context.restaurantId)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
@@ -327,7 +322,7 @@ export default async function RequestsView({ area }: { area: DashboardArea }) {
 
           <header className="top">
             <div>
-              <p className="eyebrow">R.I.O. Deventer</p>
+              <p className="eyebrow">{context.restaurantName ?? "Restaurant"}</p>
               <h1>{area === "management" ? "Tafelverzoeken" : "Personeel"}</h1>
               <p className="subtitle">
                 Openstaande verzoeken vanaf de tafels.
@@ -357,12 +352,7 @@ export default async function RequestsView({ area }: { area: DashboardArea }) {
             </div>
           </section>
 
-          {configurationMissing ? (
-            <div className="warning">
-              <strong>Dashboard is klaar, maar nog niet gekoppeld.</strong>
-              Voeg straks de SUPABASE_SECRET_KEY toe aan .env.local.
-            </div>
-          ) : loadError ? (
+          {loadError ? (
             <div className="warning">
               <strong>De meldingen konden niet worden geladen.</strong>
               Controleer de serverconfiguratie.

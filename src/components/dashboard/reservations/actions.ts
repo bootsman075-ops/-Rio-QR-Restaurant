@@ -3,12 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { DASHBOARD_PATHS } from "../areas";
-import { requirePermission } from "@/lib/permissions";
+import { requirePermissionContext } from "@/lib/permissions";
 import type { StaffRole } from "@/lib/staff-session";
 import {
-  PILOT_RESTAURANT_SLUG,
   isReservationStatus,
   isValidDate,
   isValidTime,
@@ -23,9 +22,9 @@ const RESERVATION_PATHS = [
 
 /** Reservations page of the environment the user belongs to. */
 function basePathFor(role: StaffRole) {
-  return role === "manager"
-    ? DASHBOARD_PATHS.management.reservations
-    : DASHBOARD_PATHS.staff.reservations;
+  return role === "staff"
+    ? DASHBOARD_PATHS.staff.reservations
+    : DASHBOARD_PATHS.management.reservations;
 }
 
 function revalidateReservations() {
@@ -50,24 +49,27 @@ export type ReservationFormState = {
   values: ReservationFormValues | null;
 };
 
-async function assertStaff() {
-  return requirePermission("reservations.manage");
-}
+type ReservationPermission = "reservations.manage" | "reservations.delete";
 
-async function getPilotRestaurant() {
-  const supabase = createAdminClient();
+async function getRestaurantContext(permission: ReservationPermission) {
+  const context = await requirePermissionContext(permission);
 
-  const { data, error } = await supabase
+  if (!context.restaurantId) {
+    throw new Error("Geen restaurant gekoppeld aan dit account.");
+  }
+
+  const supabase = await createClient();
+  const { data: restaurant, error } = await supabase
     .from("restaurants")
     .select("id, timezone")
-    .eq("slug", PILOT_RESTAURANT_SLUG)
+    .eq("id", context.restaurantId)
     .single();
 
-  if (error || !data) {
+  if (error || !restaurant) {
     throw new Error("Restaurant niet gevonden.");
   }
 
-  return { supabase, restaurant: data };
+  return { supabase, restaurant, role: context.role };
 }
 
 /** Only allows redirects back into one of the reservations pages. */
@@ -139,7 +141,7 @@ async function saveReservation(
   reservationId: string | null,
   formData: FormData,
 ): Promise<ReservationFormState> {
-  const role = await assertStaff();
+  const { supabase, restaurant, role } = await getRestaurantContext("reservations.manage");
 
   const values = readValues(formData);
   const validationError = validate(values);
@@ -147,8 +149,6 @@ async function saveReservation(
   if (validationError) {
     return { error: validationError, values };
   }
-
-  const { supabase, restaurant } = await getPilotRestaurant();
 
   if (values.table_id) {
     const { data: table } = await supabase
@@ -233,7 +233,7 @@ export async function updateReservation(
 }
 
 export async function setReservationStatus(formData: FormData) {
-  const role = await assertStaff();
+  const { supabase, restaurant, role } = await getRestaurantContext("reservations.manage");
 
   const reservationId = String(formData.get("reservation_id") ?? "");
   const status = String(formData.get("status") ?? "");
@@ -242,8 +242,6 @@ export async function setReservationStatus(formData: FormData) {
   if (!reservationId || !isReservationStatus(status)) {
     redirect(returnPath);
   }
-
-  const { supabase, restaurant } = await getPilotRestaurant();
 
   const { error } = await supabase
     .from("reservations")
@@ -261,7 +259,7 @@ export async function setReservationStatus(formData: FormData) {
 
 /** Management only; only cancelled reservations can be deleted. */
 export async function deleteReservation(formData: FormData) {
-  const role = await requirePermission("reservations.delete");
+  const { supabase, restaurant, role } = await getRestaurantContext("reservations.delete");
   const returnPath = safeReturnPath(formData.get("return_to"), role);
 
   const reservationId = String(formData.get("reservation_id") ?? "");
@@ -269,8 +267,6 @@ export async function deleteReservation(formData: FormData) {
   if (!reservationId) {
     redirect(returnPath);
   }
-
-  const { supabase, restaurant } = await getPilotRestaurant();
 
   const { error } = await supabase
     .from("reservations")

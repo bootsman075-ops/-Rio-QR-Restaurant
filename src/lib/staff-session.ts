@@ -1,42 +1,87 @@
 import "server-only";
-import { cookies } from "next/headers";
-import {
-  MANAGEMENT_COOKIE_NAME,
-  STAFF_COOKIE_NAME,
-  getManagementSessionToken,
-  getStaffSessionToken,
-} from "@/lib/staff-auth";
 
-export type StaffRole = "manager" | "staff";
+import { createClient } from "@/lib/supabase/server";
+import type { Enums } from "@/types/database";
 
-/**
- * Role of the current visitor, from two independent session cookies:
- * a valid management cookie → "manager", otherwise a valid staff cookie →
- * "staff", otherwise null. A staff cookie never grants management, and
- * cookies from earlier versions (old token labels, rio_manager_session)
- * are never accepted.
- * Use requirePermission() from "@/lib/permissions" to guard pages and actions.
- */
+export type RestaurantRole = Enums<"restaurant_user_role">;
+export type StaffRole = "platform_admin" | RestaurantRole;
+
+export type StaffContext = {
+  userId: string;
+  email: string | null;
+  role: StaffRole;
+  restaurantId: string | null;
+  restaurantName: string | null;
+  restaurantSlug: string | null;
+};
+
+function firstRelation<T>(value: T | T[] | null | undefined): T | null {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+}
+
+export async function getStaffContext(): Promise<StaffContext | null> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return null;
+  }
+
+  const { data: platformAdmin } = await supabase
+    .from("platform_admins")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (platformAdmin) {
+    return {
+      userId: user.id,
+      email: user.email ?? null,
+      role: "platform_admin",
+      restaurantId: null,
+      restaurantName: null,
+      restaurantSlug: null,
+    };
+  }
+
+  const { data: membership, error: membershipError } = await supabase
+    .from("user_restaurants")
+    .select(
+      "restaurant_id, role, restaurants!inner(name, slug, is_active)"
+    )
+    .eq("user_id", user.id)
+    .eq("active", true)
+    .limit(1)
+    .maybeSingle();
+
+  if (membershipError || !membership) {
+    return null;
+  }
+
+  const restaurant = firstRelation(membership.restaurants);
+
+  if (!restaurant?.is_active) {
+    return null;
+  }
+
+  return {
+    userId: user.id,
+    email: user.email ?? null,
+    role: membership.role,
+    restaurantId: membership.restaurant_id,
+    restaurantName: restaurant.name,
+    restaurantSlug: restaurant.slug,
+  };
+}
+
 export async function getStaffRole(): Promise<StaffRole | null> {
-  const cookieStore = await cookies();
-
-  const expectedManagement = getManagementSessionToken();
-
-  if (
-    expectedManagement &&
-    cookieStore.get(MANAGEMENT_COOKIE_NAME)?.value === expectedManagement
-  ) {
-    return "manager";
-  }
-
-  const expectedStaff = getStaffSessionToken();
-
-  if (
-    expectedStaff &&
-    cookieStore.get(STAFF_COOKIE_NAME)?.value === expectedStaff
-  ) {
-    return "staff";
-  }
-
-  return null;
+  return (await getStaffContext())?.role ?? null;
 }

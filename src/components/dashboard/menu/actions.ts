@@ -5,9 +5,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { DASHBOARD_PATHS } from "../areas";
-import { requirePermission } from "@/lib/permissions";
-import { PILOT_RESTAURANT_SLUG } from "@/lib/reservations";
+import { requirePermissionContext } from "@/lib/permissions";
 import {
   MENU_ALLERGENS,
   MENU_IMAGES_BUCKET,
@@ -45,28 +45,23 @@ export type SectionFormState = {
   values: SectionFormValues | null;
 };
 
-/** Every menu change requires the management permission. */
-async function requireMenuPermission() {
-  await requirePermission("menu.manage");
-}
+/** Every menu change is scoped to the signed-in restaurant. */
+async function getMenuContext() {
+  const context = await requirePermissionContext("menu.manage");
 
-async function getPilotRestaurant() {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("restaurants")
-    .select("id")
-    .eq("slug", PILOT_RESTAURANT_SLUG)
-    .single();
-
-  if (error || !data) {
-    throw new Error("Restaurant niet gevonden.");
+  if (!context.restaurantId) {
+    throw new Error("Geen restaurant gekoppeld aan dit account.");
   }
 
-  return { supabase, restaurantId: data.id };
+  return {
+    supabase: await createClient(),
+    storage: createAdminClient(),
+    restaurantId: context.restaurantId,
+  };
 }
 
-type Supabase = ReturnType<typeof createAdminClient>;
+type Supabase = Awaited<ReturnType<typeof createClient>>;
+type StorageAdmin = ReturnType<typeof createAdminClient>;
 
 function revalidateMenu() {
   revalidatePath(BASE_PATH);
@@ -90,11 +85,11 @@ async function nextItemSortOrder(
   return (data?.[0]?.sort_order ?? 0) + 1;
 }
 
-async function removeStoredImage(supabase: Supabase, imageUrl: string | null) {
+async function removeStoredImage(storage: StorageAdmin, imageUrl: string | null) {
   const path = storagePathFromUrl(imageUrl);
 
   if (path) {
-    const { error } = await supabase.storage.from(MENU_IMAGES_BUCKET).remove([path]);
+    const { error } = await storage.storage.from(MENU_IMAGES_BUCKET).remove([path]);
 
     if (error) {
       console.error(error);
@@ -114,7 +109,7 @@ export async function saveMenuItem(
   _previous: MenuItemFormState,
   formData: FormData,
 ): Promise<MenuItemFormState> {
-  await requireMenuPermission();
+  const { supabase, storage, restaurantId } = await getMenuContext();
 
   const itemId = text(formData, "item_id");
   const values: MenuItemFormValues = {
@@ -159,8 +154,6 @@ export async function saveMenuItem(
     }
   }
 
-  const { supabase, restaurantId } = await getPilotRestaurant();
-
   const { data: section } = await supabase
     .from("menu_sections")
     .select("id")
@@ -197,7 +190,7 @@ export async function saveMenuItem(
     const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
     uploadedPath = `${restaurantId}/${id}-${Date.now()}.${extension}`;
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await storage.storage
       .from(MENU_IMAGES_BUCKET)
       .upload(uploadedPath, image, { contentType: image.type, upsert: false });
 
@@ -241,14 +234,14 @@ export async function saveMenuItem(
     console.error(error);
 
     if (uploadedPath) {
-      await supabase.storage.from(MENU_IMAGES_BUCKET).remove([uploadedPath]);
+      await storage.storage.from(MENU_IMAGES_BUCKET).remove([uploadedPath]);
     }
 
     return fail("Opslaan is mislukt. Probeer het opnieuw.");
   }
 
   if (existing?.image_url && existing.image_url !== imageUrl) {
-    await removeStoredImage(supabase, existing.image_url);
+    await removeStoredImage(storage, existing.image_url);
   }
 
   revalidateMenu();
@@ -256,11 +249,10 @@ export async function saveMenuItem(
 }
 
 export async function setMenuItemAvailability(formData: FormData) {
-  await requireMenuPermission();
+  const { supabase, restaurantId } = await getMenuContext();
 
   const itemId = text(formData, "item_id");
   const available = formData.get("available") === "1";
-  const { supabase, restaurantId } = await getPilotRestaurant();
 
   const { data, error } = await supabase
     .from("menu_items")
@@ -279,11 +271,10 @@ export async function setMenuItemAvailability(formData: FormData) {
 }
 
 export async function moveMenuItem(formData: FormData) {
-  await requireMenuPermission();
+  const { supabase, restaurantId } = await getMenuContext();
 
   const itemId = text(formData, "item_id");
   const direction = text(formData, "direction") === "up" ? -1 : 1;
-  const { supabase, restaurantId } = await getPilotRestaurant();
 
   const { data: item } = await supabase
     .from("menu_items")
@@ -338,10 +329,9 @@ export async function moveMenuItem(formData: FormData) {
 }
 
 export async function deleteMenuItem(formData: FormData) {
-  await requireMenuPermission();
+  const { supabase, storage, restaurantId } = await getMenuContext();
 
   const itemId = text(formData, "item_id");
-  const { supabase, restaurantId } = await getPilotRestaurant();
 
   const { data, error } = await supabase
     .from("menu_items")
@@ -356,7 +346,7 @@ export async function deleteMenuItem(formData: FormData) {
   }
 
   if (data) {
-    await removeStoredImage(supabase, data.image_url);
+    await removeStoredImage(storage, data.image_url);
   }
 
   revalidateMenu();
@@ -371,7 +361,7 @@ export async function saveSection(
   _previous: SectionFormState,
   formData: FormData,
 ): Promise<SectionFormState> {
-  await requireMenuPermission();
+  const { supabase, restaurantId } = await getMenuContext();
 
   const sectionId = text(formData, "section_id");
   const values: SectionFormValues = {
@@ -392,7 +382,6 @@ export async function saveSection(
     return fail("De omschrijving is te lang (maximaal 300 tekens).");
   }
 
-  const { supabase, restaurantId } = await getPilotRestaurant();
   const record = { name: values.name, description: values.description || null };
   let id = sectionId;
 
@@ -443,11 +432,10 @@ export async function saveSection(
 }
 
 export async function setSectionVisibility(formData: FormData) {
-  await requireMenuPermission();
+  const { supabase, restaurantId } = await getMenuContext();
 
   const sectionId = text(formData, "section_id");
   const visible = formData.get("visible") === "1";
-  const { supabase, restaurantId } = await getPilotRestaurant();
 
   const { error } = await supabase
     .from("menu_sections")
@@ -464,10 +452,9 @@ export async function setSectionVisibility(formData: FormData) {
 }
 
 export async function deleteSection(formData: FormData) {
-  await requireMenuPermission();
+  const { supabase, restaurantId } = await getMenuContext();
 
   const sectionId = text(formData, "section_id");
-  const { supabase, restaurantId } = await getPilotRestaurant();
 
   // Deleting a section cascades to its items, so only empty sections may go.
   const { count, error: countError } = await supabase

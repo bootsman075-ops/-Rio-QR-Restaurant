@@ -29,16 +29,15 @@ export default async function QrTablePage({ params }: PageProps) {
   const { token } = await params;
   const supabase = await createClient();
 
-  const { data: qrData, error: qrError } = await supabase.rpc(
-    "resolve_qr_token",
-    {
-      p_token: token,
-    }
-  );
+  const { data: table, error: tokenError } = await supabase
+    .rpc("resolve_qr_token", { p_token: token })
+    .maybeSingle();
 
-  const table = qrData?.[0];
+  if (tokenError) {
+    console.error(tokenError);
+  }
 
-  if (qrError || !table) {
+  if (!table) {
     return (
       <>
         <style>{`
