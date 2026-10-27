@@ -143,12 +143,22 @@ export default async function PlatformPage({ searchParams }: Props) {
           font-weight: 500;
         }
         .subtitle { margin: 10px 0 0; color: var(--muted); }
+        .top-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .account-link,
         .logout {
           padding: 10px 16px;
           border: 1px solid rgba(23,23,20,.16);
           border-radius: 999px;
           background: transparent;
+          color: var(--ink);
+          font: inherit;
           font-weight: 800;
+          text-decoration: none;
           cursor: pointer;
         }
         .invite {
@@ -302,9 +312,14 @@ export default async function PlatformPage({ searchParams }: Props) {
                 Centraal overzicht van restaurants, gebruikers en rollen.
               </p>
             </div>
-            <form action={logout}>
-              <button className="logout" type="submit">Uitloggen</button>
-            </form>
+            <div className="top-actions">
+              <a className="account-link" href="/platform/account">
+                Adminaccount
+              </a>
+              <form action={logout}>
+                <button className="logout" type="submit">Uitloggen</button>
+              </form>
+            </div>
           </header>
 
           <section className="invite">
