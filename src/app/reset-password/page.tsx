@@ -74,8 +74,8 @@ export default function ResetPasswordPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (password.length < 8) {
-      setMessage("Gebruik minimaal 8 tekens voor je nieuwe wachtwoord.");
+    if (password.length < 12) {
+      setMessage("Gebruik minimaal 12 tekens voor je nieuwe wachtwoord.");
       return;
     }
 
@@ -141,7 +141,7 @@ export default function ResetPasswordPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              minLength={8}
+              minLength={12}
               className="h-13 w-full rounded-xl border border-black/15 bg-white px-4 text-base outline-none focus:border-[#a87c36]"
             />
 
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
-              minLength={8}
+              minLength={12}
               className="h-13 w-full rounded-xl border border-black/15 bg-white px-4 text-base outline-none focus:border-[#a87c36]"
             />
 
