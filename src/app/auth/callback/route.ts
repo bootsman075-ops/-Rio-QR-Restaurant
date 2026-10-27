@@ -28,5 +28,16 @@ export async function GET(request: NextRequest) {
 
   const response = NextResponse.redirect(new URL(next, url.origin));
   response.headers.set("Cache-Control", "no-store");
+
+  if (next === "/reset-password") {
+    response.cookies.set("rio_recovery_flow", "1", {
+      httpOnly: true,
+      secure: url.protocol === "https:",
+      sameSite: "lax",
+      maxAge: 10 * 60,
+      path: "/reset-password",
+    });
+  }
+
   return response;
 }
