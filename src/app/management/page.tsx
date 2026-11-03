@@ -14,6 +14,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import RioDashboardBrand from "@/components/dashboard/RioDashboardBrand";
 import QrDashboardSummary from "@/components/dashboard/orders/QrDashboardSummary";
+import ManagementWorkspace from "@/components/dashboard/management/ManagementWorkspace";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ type Overview = {
 
 async function loadOverview(
   restaurantId: string,
-): Promise<{ today: string; data: Overview | null }> {
+): Promise<{ today: string; timezone: string; data: Overview | null }> {
   const fallbackToday = todayInZone("Europe/Amsterdam");
   const supabase = await createClient();
   const { data: restaurant } = await supabase
@@ -40,7 +41,7 @@ async function loadOverview(
     .maybeSingle();
 
   if (!restaurant) {
-    return { today: fallbackToday, data: null };
+    return { today: fallbackToday, timezone: "Europe/Amsterdam", data: null };
   }
 
   const today = todayInZone(restaurant.timezone);
@@ -63,7 +64,7 @@ async function loadOverview(
 
   if (requests.error || reservations.error || items.error || sections.error) {
     console.error(requests.error ?? reservations.error ?? items.error ?? sections.error);
-    return { today, data: null };
+    return { today, timezone: restaurant.timezone, data: null };
   }
 
   const active = reservations.data.filter(
@@ -72,6 +73,7 @@ async function loadOverview(
 
   return {
     today,
+    timezone: restaurant.timezone,
     data: {
       pendingService: requests.data.filter((request) => request.request_type === "service").length,
       pendingBills: requests.data.filter((request) => request.request_type === "bill").length,
@@ -92,7 +94,7 @@ export default async function ManagementPage() {
     redirect("/platform");
   }
 
-  const { today, data } = await loadOverview(context.restaurantId);
+  const { today, timezone, data } = await loadOverview(context.restaurantId);
   const isRio = context.restaurantSlug === "rio-deventer";
   const paths = DASHBOARD_PATHS.management;
 
@@ -330,6 +332,10 @@ export default async function ManagementPage() {
           </header>
           ) : null}
 
+          {isRio ? (
+            <ManagementWorkspace restaurantId={context.restaurantId} today={today} timezone={timezone} overview={data} />
+          ) : (
+            <>
           <QrDashboardSummary area="management" />
 
           {data ? (
@@ -390,6 +396,8 @@ export default async function ManagementPage() {
             Nieuwe beheeronderdelen verschijnen hier en in het menu bovenaan. Ze zijn
             automatisch alleen toegankelijk voor Management.
           </div>
+            </>
+          )}
         </div>
 
         <LiveRefresh />
