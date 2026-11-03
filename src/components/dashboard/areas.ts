@@ -4,7 +4,7 @@
  */
 export type DashboardArea = "staff" | "management";
 
-export type DashboardSection = "overview" | "requests" | "reservations" | "menu" | "orders" | "stats";
+export type DashboardSection = "overview" | "requests" | "reservations" | "menu" | "orders" | "stats" | "payments";
 
 export const DASHBOARD_PATHS = {
   staff: {
@@ -22,6 +22,7 @@ export const DASHBOARD_PATHS = {
     menu: "/management/menu",
     orders: "/management/qr-bestellingen",
     stats: "/management/statistieken",
+    payments: "/management/betalingen",
   },
 } as const;
 
@@ -38,6 +39,7 @@ export const DASHBOARD_NAV: Record<
   management: [
     { key: "overview", href: DASHBOARD_PATHS.management.home, label: "Overzicht" },
     { key: "stats", href: DASHBOARD_PATHS.management.stats, label: "Statistieken" },
+    { key: "payments", href: DASHBOARD_PATHS.management.payments, label: "Betalingen" },
     { key: "orders", href: DASHBOARD_PATHS.management.orders, label: "QR-bestellingen" },
     { key: "requests", href: DASHBOARD_PATHS.management.requests, label: "Tafelverzoeken" },
     { key: "reservations", href: DASHBOARD_PATHS.management.reservations, label: "Reserveringen" },

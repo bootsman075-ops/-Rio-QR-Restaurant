@@ -103,7 +103,8 @@ export default async function DashboardNav({ area, current }: DashboardNavProps)
           aria-label={area === "management" ? "Managementmenu" : "Personeelsmenu"}
         >
           {DASHBOARD_NAV[area].filter(
-            (item) => item.key !== "stats" || context?.restaurantSlug === "rio-deventer"
+            (item) => (item.key !== "stats" && item.key !== "payments")
+              || context?.restaurantSlug === "rio-deventer"
           ).map((item) => (
             <Link
               key={item.key}

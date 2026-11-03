@@ -47,6 +47,8 @@ jobs:
         run: node --test scripts/rio-menu-ordering-and-stats.test.mjs
       - name: Verify management links never redirect to staff
         run: node --test scripts/management-routing-contract.test.mjs
+      - name: Verify QR payment readiness, tenant security and disabled checkout
+        run: node --test scripts/qr-payment-readiness-contract.test.mjs
       - run: npm run lint
       - run: npm run build
       - name: Block high-severity production dependencies
