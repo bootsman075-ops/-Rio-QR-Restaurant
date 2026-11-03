@@ -1,0 +1,38 @@
+name: RIO bounded preview capacity audit
+
+on:
+  pull_request:
+    paths:
+      - "scripts/rio_readonly_load_audit.py"
+      - ".github/workflows/rio-bounded-capacity-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-readonly-load:
+    if: github.head_ref == 'audit/rio-load-capacity-20261103'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RIO_PREVIEW_BASE: https://rio-qr-restaurant-fq2o4bv5e-bootsman075-4179.vercel.app
+      RIO_EXPECTED_DEPLOYMENT: dpl_BNDC8LLGUzzFpVLrEULDDERVBJDD
+      RIO_TEST_QR_TOKEN: 615a1417a1794b1bb7b110958fe2d335
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Preview-only read-only capacity test (bounded)
+        run: python scripts/rio_readonly_load_audit.py
+      - name: Store detailed measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rio-preview-capacity-results
+          path: |
+            rio-capacity-results.json
+            rio-capacity-requests.csv
+          if-no-files-found: ignore
+          retention-days: 7
