@@ -70,3 +70,6 @@
 .statsLinkRow{display:flex;justify-content:flex-end;margin:-15px 0 24px}
 .statsLinkRow a{font:700 13px/1.5 Arial,sans-serif;color:#354c30;text-underline-offset:3px}
 @media(min-width:1081px){.shortcuts{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
+/* Six management shortcuts: keep cards readable rather than fitting six narrow columns. */
+@media(min-width:1081px){.shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}}

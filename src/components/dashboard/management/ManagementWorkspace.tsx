@@ -208,6 +208,7 @@ export default async function ManagementWorkspace({
       <Link href="/management/tafelverzoeken"><span>03</span><strong>Tafelverzoeken</strong><small>Bediening en rekeningen</small></Link>
       <Link href="/management/menu"><span>04</span><strong>Menukaart</strong><small>Prijzen en beschikbaarheid</small></Link>
       <Link href="/management/statistieken"><span>05</span><strong>Statistieken</strong><small>Dag-, maand- en jaarcijfers</small></Link>
+      <Link href="/management/betalingen"><span>06</span><strong>Betalingen</strong><small>Online betaalkoppeling voorbereiden</small></Link>
     </section>
     <p className={styles.disclaimer}>
       Financiële grafieken bevatten uitsluitend QR-bestellingen. Betaalde bedragen zijn handmatige managementmarkeringen

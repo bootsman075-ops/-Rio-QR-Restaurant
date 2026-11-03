@@ -14,6 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
+      qr_payment_settings: {
+        Row: {
+          restaurant_id: string
+          provider_code: string | null
+          environment: "sandbox" | "live"
+          checkout_enabled: boolean
+          webhook_verified_at: string | null
+          currency: "EUR"
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          restaurant_id: string
+          provider_code?: string | null
+          environment?: "sandbox" | "live"
+          checkout_enabled?: boolean
+          webhook_verified_at?: string | null
+          currency?: "EUR"
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          restaurant_id?: string
+          provider_code?: string | null
+          environment?: "sandbox" | "live"
+          checkout_enabled?: boolean
+          webhook_verified_at?: string | null
+          currency?: "EUR"
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_payment_settings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qr_payment_attempts: {
+        Row: {
+          id: string
+          restaurant_id: string
+          order_id: string
+          provider_code: string
+          idempotency_key: string
+          provider_payment_id: string | null
+          status: "created" | "pending" | "succeeded" | "failed" | "cancelled" | "expired" | "refunded" | "partially_refunded"
+          amount_cents: number
+          currency: "EUR"
+          created_at: string
+          updated_at: string
+          confirmed_at: string | null
+        }
+        Insert: {
+          id?: string
+          restaurant_id: string
+          order_id: string
+          provider_code: string
+          idempotency_key: string
+          provider_payment_id?: string | null
+          status?: "created" | "pending" | "succeeded" | "failed" | "cancelled" | "expired" | "refunded" | "partially_refunded"
+          amount_cents: number
+          currency?: "EUR"
+          created_at?: string
+          updated_at?: string
+          confirmed_at?: string | null
+        }
+        Update: {
+          id?: string
+          restaurant_id?: string
+          order_id?: string
+          provider_code?: string
+          idempotency_key?: string
+          provider_payment_id?: string | null
+          status?: "created" | "pending" | "succeeded" | "failed" | "cancelled" | "expired" | "refunded" | "partially_refunded"
+          amount_cents?: number
+          currency?: "EUR"
+          created_at?: string
+          updated_at?: string
+          confirmed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_payment_attempt_tenant_order_fk"
+            columns: ["restaurant_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "qr_orders"
+            referencedColumns: ["restaurant_id", "id"]
+          },
+        ]
+      }
+      qr_payment_events: {
+        Row: {
+          id: string
+          restaurant_id: string
+          attempt_id: string | null
+          provider_code: string
+          provider_event_id: string
+          event_type: string
+          payload_sha256: string
+          verified_at: string
+          processed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          restaurant_id: string
+          attempt_id?: string | null
+          provider_code: string
+          provider_event_id: string
+          event_type: string
+          payload_sha256: string
+          verified_at: string
+          processed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          restaurant_id?: string
+          attempt_id?: string | null
+          provider_code?: string
+          provider_event_id?: string
+          event_type?: string
+          payload_sha256?: string
+          verified_at?: string
+          processed_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_payment_event_attempt_fk"
+            columns: ["restaurant_id", "attempt_id"]
+            isOneToOne: false
+            referencedRelation: "qr_payment_attempts"
+            referencedColumns: ["restaurant_id", "id"]
+          },
+        ]
+      }
       qr_orders: {
         Row: {
           id: string
