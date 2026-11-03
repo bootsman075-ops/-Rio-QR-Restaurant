@@ -40,8 +40,14 @@ export function can(role: StaffRole | null, permission: Permission) {
   return STAFF_PERMISSIONS.includes(permission);
 }
 
-function loginPath() {
-  return "/login";
+/** Keep management routes on a management-specific login gateway.
+ * A browser has one Supabase session: a staff session must never silently
+ * reroute a management link to the staff dashboard.
+ */
+function managementOnly(permission: Permission): boolean {
+  return permission === "management.access"
+    || permission === "menu.manage"
+    || permission === "reservations.delete";
 }
 
 export async function requirePermissionContext(
@@ -50,11 +56,16 @@ export async function requirePermissionContext(
   const context = await getStaffContext();
 
   if (!context) {
-    redirect(loginPath());
+    redirect(managementOnly(permission) ? "/management/login" : "/login");
   }
 
   if (!can(context.role, permission)) {
-    redirect(context.role === "platform_admin" ? "/platform" : "/staff");
+    if (context.role === "platform_admin") {
+      redirect("/platform");
+    }
+    redirect(managementOnly(permission)
+      ? "/management/login?error=access"
+      : "/staff");
   }
 
   return context;
