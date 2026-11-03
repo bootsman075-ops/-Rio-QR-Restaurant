@@ -5,12 +5,12 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export async function dashboardLogin(formData: FormData) {
+async function loginWithPassword(formData: FormData, failurePath: "/login" | "/staff/login") {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirect("/login?error=credentials");
+    redirect(`${failurePath}?error=credentials`);
   }
 
   const supabase = await createClient();
@@ -20,12 +20,20 @@ export async function dashboardLogin(formData: FormData) {
   });
 
   if (error || !data.user) {
-    redirect("/login?error=credentials");
+    redirect(`${failurePath}?error=credentials`);
   }
 
   // No role, tenant data or privileged page is accessed until AAL2 is proved.
   // /security/mfa also handles first-time TOTP setup.
   redirect("/security/mfa");
+}
+
+export async function dashboardLogin(formData: FormData) {
+  await loginWithPassword(formData, "/login");
+}
+
+export async function staffLogin(formData: FormData) {
+  await loginWithPassword(formData, "/staff/login");
 }
 
 export async function logout() {
@@ -45,15 +53,18 @@ export async function managementLogin(formData: FormData) {
 
   const supabase = await createClient();
 
-  // Replace any existing staff/other session before attempting management login.
-  await supabase.auth.signOut();
-
+  // A successful signInWithPassword replaces the existing Supabase session.
+  // Do not revoke a session before we know whether the credentials are valid:
+  // it adds an unnecessary Auth call and can trigger stale-session errors.
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error || !data.user) {
+    // Preserve the former failure behavior: an unsuccessful attempt leaves
+    // no prior staff session active on the management login screen.
+    await supabase.auth.signOut();
     redirect("/management/login?error=credentials");
   }
 

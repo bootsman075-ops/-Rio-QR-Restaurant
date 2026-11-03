@@ -17,7 +17,7 @@ test("management and staff use one consistent branded login component", () => {
   assert.match(management, /Management inloggen/);
   assert.match(staff, /Personeel inloggen/);
   assert.match(management, /action=\{managementLogin\}/);
-  assert.match(staff, /action=\{dashboardLogin\}/);
+  assert.match(staff, /action=\{staffLogin\}/);
   assert.match(component, /type="email"/);
   assert.match(component, /href="\/forgot-password"/);
 });

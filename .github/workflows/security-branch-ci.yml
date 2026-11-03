@@ -37,6 +37,8 @@ jobs:
         run: node --test scripts/rio-dashboard-layout.test.mjs
       - name: Verify QR ordering security and reporting contracts
         run: node --test scripts/qr-orders-contract.test.mjs
+      - name: Verify login performance and routing contracts
+        run: node --test scripts/login-reliability.test.mjs
       - run: npm run lint
       - run: npm run build
       - name: Block high-severity production dependencies
