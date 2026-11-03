@@ -39,3 +39,12 @@ test("MFA and tenant security gates are untouched",()=>{
   assert.match(src,/\.from\("user_restaurants"\)/);
   assert.match(src,/\.from\("platform_admins"\)/);
 });
+
+test("staff context lookups are cached only within the server request",()=>{
+  const src=read("src/lib/staff-session.ts");
+  assert.match(src,/import \{ cache \} from "react"/);
+  assert.match(src,/getStaffContext = cache\(async function getStaffContext/);
+  assert.match(src,/currentLevel !== "aal2"/);
+  assert.match(src,/auth\.getUser\(\)/);
+  assert.match(src,/getStaffRole\(\): Promise<StaffRole \| null>/);
+});

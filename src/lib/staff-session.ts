@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Enums } from "@/types/database";
@@ -24,7 +25,9 @@ function firstRelation<T>(value: T | T[] | null | undefined): T | null {
   return value ?? null;
 }
 
-export async function getStaffContext(): Promise<StaffContext | null> {
+// React cache is scoped to ONE server request, never shared across users.
+// It removes repeat Auth/MFA/tenant fetches when a dashboard and its nav render.
+export const getStaffContext = cache(async function getStaffContext(): Promise<StaffContext | null> {
   const supabase = await createClient();
 
   // getUser validates the session with the Auth server, unlike getSession.
@@ -85,7 +88,7 @@ export async function getStaffContext(): Promise<StaffContext | null> {
     restaurantName: restaurant.name,
     restaurantSlug: restaurant.slug,
   };
-}
+});
 
 export async function getStaffRole(): Promise<StaffRole | null> {
   return (await getStaffContext())?.role ?? null;
