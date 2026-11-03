@@ -1,5 +1,6 @@
 import LiveRefresh from "../LiveRefresh";
 import DashboardNav from "../DashboardNav";
+import RioDashboardBrand from "../RioDashboardBrand";
 import type { DashboardArea } from "../areas";
 import { markRequestHandled } from "./actions";
 import { requirePermissionContext } from "@/lib/permissions";
@@ -316,8 +317,9 @@ export default async function RequestsView({ area }: { area: DashboardArea }) {
         }
       `}</style>
 
-      <main className="staff-page">
+      <main className={`staff-page${context.restaurantSlug === "rio-deventer" ? " rio-management" : ""}`}>
         <div className="wrap">
+          {context.restaurantSlug === "rio-deventer" ? <RioDashboardBrand area="{area}" /> : null}
           <DashboardNav area={area} current="requests" />
 
           <header className="top">

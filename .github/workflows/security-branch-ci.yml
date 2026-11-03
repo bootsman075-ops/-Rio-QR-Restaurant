@@ -33,6 +33,8 @@ jobs:
         run: node --test scripts/tenant-security-contract.test.mjs
       - name: Verify Rio login layout contracts
         run: node --test scripts/rio-auth-layout.test.mjs
+      - name: Verify Rio dashboard design and preserved business actions
+        run: node --test scripts/rio-dashboard-layout.test.mjs
       - run: npm run lint
       - run: npm run build
       - name: Block high-severity production dependencies
