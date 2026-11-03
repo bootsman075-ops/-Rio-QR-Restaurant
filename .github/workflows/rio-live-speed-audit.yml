@@ -1,0 +1,68 @@
+name: RIO one-time synthetic performance audit
+on:
+  pull_request:
+    paths:
+      - .github/workflows/rio-live-speed-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Measure real HTTP responses (8 repeats per public route)
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > /tmp/rio-http.csv
+          for route in management/login qr/615a1417a1794b1bb7b110958fe2d335 management; do
+            for trial in $(seq 1 8); do
+              curl --silent --show-error --location --output /dev/null --max-time 25 \
+                --write-out "$route,%{http_code},%{time_namelookup},%{time_connect},%{time_starttransfer},%{time_total},%{size_download}\n" \
+                "https://rio-qr-restaurant.vercel.app/$route" >> /tmp/rio-http.csv
+            done
+          done
+          python3 - <<'PY'
+          import csv,collections,statistics
+          rows=collections.defaultdict(list)
+          with open('/tmp/rio-http.csv') as f:
+              for r in csv.reader(f):
+                  rows[r[0]].append({'status':int(r[1]),'dns_ms':float(r[2])*1000,'connect_ms':float(r[3])*1000,'ttfb_ms':float(r[4])*1000,'total_ms':float(r[5])*1000,'transfer_bytes':int(r[6])})
+          print('=== LIVE HTTP BENCHMARK FROM GITHUB HOSTED RUNNER (NOT USER BROWSER) ===')
+          for route,data in rows.items():
+              s=sorted(x['ttfb_ms'] for x in data)
+              t=sorted(x['total_ms'] for x in data)
+              print(f'{route}: n={len(data)} status={sorted(set(x["status"] for x in data))} '
+                    f'TTFB_median={statistics.median(s):.1f}ms TTFB_min={min(s):.1f}ms '
+                    f'TTFB_max={max(s):.1f}ms total_median={statistics.median(t):.1f}ms '
+                    f'total_max={max(t):.1f}ms received_bytes={data[-1]["transfer_bytes"]}')
+          PY
+      - name: Install Node for Lighthouse
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Mobile and desktop Lighthouse on public QR menu
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://rio-qr-restaurant.vercel.app/qr/615a1417a1794b1bb7b110958fe2d335"
+          npx --yes lighthouse@12 "$URL" --only-categories=performance \
+            --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage" \
+            --quiet --output=json --output-path=/tmp/rio-lh-mobile.json
+          npx --yes lighthouse@12 "$URL" --preset=desktop --only-categories=performance \
+            --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage" \
+            --quiet --output=json --output-path=/tmp/rio-lh-desktop.json
+          node - <<'JS'
+          const fs=require('fs');
+          const ids=['first-contentful-paint','largest-contentful-paint','speed-index','total-blocking-time','cumulative-layout-shift','server-response-time','interactive'];
+          for(const mode of ['mobile','desktop']){
+            const d=JSON.parse(fs.readFileSync('/tmp/rio-lh-'+mode+'.json','utf8'));
+            const values=Object.fromEntries(ids.map(k=>[k,d.audits[k]?.numericValue??null]));
+            console.log('=== LIGHTHOUSE '+mode.toUpperCase()+' === '+JSON.stringify({
+              score:Math.round(d.categories.performance.score*100),requestedUrl:d.requestedUrl,finalUrl:d.finalUrl,
+              fetchTime:d.fetchTime,measurements:values
+            }));
+          }
+          JS
