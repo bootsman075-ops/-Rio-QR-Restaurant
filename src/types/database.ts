@@ -14,6 +14,97 @@ export type Database = {
   }
   public: {
     Tables: {
+      qr_orders: {
+        Row: {
+          id: string
+          restaurant_id: string
+          table_id: string
+          qr_token_id: string
+          client_request_id: string
+          status: "pending" | "accepted" | "preparing" | "ready" | "served" | "cancelled"
+          payment_status: "unpaid" | "paid"
+          total_cents: number
+          created_at: string
+          updated_at: string
+          paid_at: string | null
+        }
+        Insert: {
+          id?: string
+          restaurant_id: string
+          table_id: string
+          qr_token_id: string
+          client_request_id: string
+          status?: "pending" | "accepted" | "preparing" | "ready" | "served" | "cancelled"
+          payment_status?: "unpaid" | "paid"
+          total_cents: number
+          created_at?: string
+          updated_at?: string
+          paid_at?: string | null
+        }
+        Update: {
+          id?: string
+          restaurant_id?: string
+          table_id?: string
+          qr_token_id?: string
+          client_request_id?: string
+          status?: "pending" | "accepted" | "preparing" | "ready" | "served" | "cancelled"
+          payment_status?: "unpaid" | "paid"
+          total_cents?: number
+          created_at?: string
+          updated_at?: string
+          paid_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_orders_restaurant_id_table_id_fkey"
+            columns: ["restaurant_id", "table_id"]
+            isOneToOne: false
+            referencedRelation: "tables"
+            referencedColumns: ["restaurant_id", "id"]
+          },
+        ]
+      }
+      qr_order_items: {
+        Row: {
+          id: string
+          restaurant_id: string
+          order_id: string
+          menu_item_id: string | null
+          item_name: string
+          quantity: number
+          unit_price_cents: number
+          line_total_cents: number
+        }
+        Insert: {
+          id?: string
+          restaurant_id: string
+          order_id: string
+          menu_item_id?: string | null
+          item_name: string
+          quantity: number
+          unit_price_cents: number
+          line_total_cents?: number
+        }
+        Update: {
+          id?: string
+          restaurant_id?: string
+          order_id?: string
+          menu_item_id?: string | null
+          item_name?: string
+          quantity?: number
+          unit_price_cents?: number
+          line_total_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_order_items_restaurant_id_order_id_fkey"
+            columns: ["restaurant_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "qr_orders"
+            referencedColumns: ["restaurant_id", "id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           allergens: string[]
@@ -389,6 +480,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_qr_order: {
+        Args: { p_token: string; p_client_request_id: string; p_items: Json }
+        Returns: Json
+      }
+      update_qr_order: {
+        Args: { p_order_id: string; p_action: string }
+        Returns: Json
+      }
+      qr_order_report: {
+        Args: { p_restaurant_id: string; p_day: string }
+        Returns: Json
+      }
       create_service_request: {
         Args: { p_request_type: string; p_token: string }
         Returns: {
