@@ -508,3 +508,74 @@
 .rio-management .top h1 { font-size: clamp(29px, 4vw, 44px); }
 .rio-management .top .eyebrow { margin-bottom: 5px; }
 .rio-management .top::after { display:none; }
+
+
+/* Spacious desktop navigation: branded top bar plus accessible cream sidebar. */
+@media (min-width: 900px) {
+  .rio-management .wrap {
+    display: grid;
+    grid-template-columns: 218px minmax(0, 1fr);
+    column-gap: clamp(14px, 2.5vw, 30px);
+    align-items: start;
+  }
+  .rio-management .rio-masthead {
+    grid-column: 1 / -1;
+  }
+  .rio-management .staff-nav-bar {
+    position: sticky;
+    top: 20px;
+    grid-column: 1;
+    grid-row: 2 / span 40;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 16px 12px;
+    gap: 18px;
+    margin-bottom: 0;
+    background: #fffaf1;
+    border-radius: 17px;
+    min-width: 0;
+  }
+  .rio-management .staff-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+  .rio-management .staff-nav-link {
+    padding: 12px 14px;
+    border-radius: 11px;
+    text-align: left;
+    white-space: normal;
+  }
+  .rio-management .staff-nav-link:not([aria-current="page"]) {
+    border-color: transparent;
+    background: transparent;
+  }
+  .rio-management .staff-nav-link:hover {
+    background: #f1ead9;
+    border-color: #d5c4a5;
+  }
+  .rio-management .staff-session {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: start;
+    gap: 10px;
+    padding-top: 18px;
+    border-top: 1px solid #e5d8c2;
+  }
+  .rio-management .staff-role,
+  .rio-management .staff-logout {
+    font-size: 12px;
+    text-align: center;
+    white-space: normal;
+  }
+  .rio-management .wrap > :not(.rio-masthead):not(.staff-nav-bar) {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .rio-management .wrap > .rio-masthead {
+    grid-column: 1 / -1;
+  }
+}
