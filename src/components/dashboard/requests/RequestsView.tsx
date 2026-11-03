@@ -319,7 +319,7 @@ export default async function RequestsView({ area }: { area: DashboardArea }) {
 
       <main className={`staff-page${context.restaurantSlug === "rio-deventer" ? " rio-management" : ""}`}>
         <div className="wrap">
-          {context.restaurantSlug === "rio-deventer" ? <RioDashboardBrand area="{area}" /> : null}
+          {context.restaurantSlug === "rio-deventer" ? <RioDashboardBrand area={area} /> : null}
           <DashboardNav area={area} current="requests" />
 
           <header className="top">
