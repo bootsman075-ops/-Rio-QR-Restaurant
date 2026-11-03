@@ -634,7 +634,7 @@ export default async function ReservationsView({ area, role, params }: Reservati
 
       <main className={`staff-page${context.restaurantSlug === "rio-deventer" ? " rio-management" : ""}`}>
         <div className="wrap">
-          {context.restaurantSlug === "rio-deventer" ? <RioDashboardBrand area="{area}" /> : null}
+          {context.restaurantSlug === "rio-deventer" ? <RioDashboardBrand area={area} /> : null}
           <DashboardNav area={area} current="reservations" />
 
           <header className="top">
