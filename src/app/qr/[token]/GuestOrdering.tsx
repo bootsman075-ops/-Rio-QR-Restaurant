@@ -9,6 +9,7 @@ type CartContext = {
   lines: Line[];
   add: (product: Product) => void;
   change: (id: string, amount: number) => void;
+  clear: () => void;
   token: string;
 };
 const Cart = createContext<CartContext | null>(null);
@@ -26,10 +27,11 @@ export function GuestOrderProvider({ children, token }: {
   children: ReactNode; token: string;
 }) {
   const [lines, setLines] = useState<Line[]>([]);
-  const tokenKeyRef = useRef<string | null>(null);
+
 
   function add(product: Product) {
-    tokenKeyRef.current = null;
+
+
     setLines((before) => {
       const old = before.find((line) => line.id === product.id);
       if (old) return before.map((line) => line.id === product.id
@@ -38,12 +40,13 @@ export function GuestOrderProvider({ children, token }: {
     });
   }
   function change(id: string, amount: number) {
-    tokenKeyRef.current = null;
+
+
     setLines((before) => before.map((line) => line.id === id
       ? { ...line, quantity: Math.max(0, Math.min(20, line.quantity + amount)) }
       : line).filter((line) => line.quantity > 0));
   }
-  return <Cart.Provider value={{ lines, add, change, token }}>{children}</Cart.Provider>;
+  return <Cart.Provider value={{ lines, add, change, clear: () => setLines([]), token }}>{children}</Cart.Provider>;
 }
 
 export function OrderAddButton({ item }: { item: Product }) {
@@ -56,7 +59,7 @@ export function OrderAddButton({ item }: { item: Product }) {
 }
 
 export function GuestCart() {
-  const { lines, change, token } = useCart();
+  const { lines, change, clear, token } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const key = useRef<string | null>(null);
@@ -131,6 +134,13 @@ export function GuestCart() {
         {submitting ? "Bestelling verwerkt" : "Bestelling plaatsen"}
       </button>
       {message && <p role="status" style={{ marginTop: 12 }}>{message}</p>}
+      {submitting && message.startsWith("Bestelling ontvangen") &&
+        <button type="button" onClick={() => {
+          clear(); key.current = null; setSubmitting(false); setMessage("");
+        }} style={{ marginTop: 12, border: "1px solid #bba580", padding: 12,
+          borderRadius: 10, background: "white", cursor: "pointer" }}>
+          Nieuwe bestelling beginnen
+        </button>}
     </section>
   );
 }
