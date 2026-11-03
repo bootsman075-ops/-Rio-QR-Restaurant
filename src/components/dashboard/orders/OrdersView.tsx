@@ -62,8 +62,8 @@ export default async function OrdersView({ area, error }: {
     ]);
   }
   const loadError = Boolean(ordersError || tablesResult.error || itemsResult.error);
-  return <main className={"staff-page" + (isRio ? " rio-management" : "")}>
-    <div className="wrap">
+  return <main className={"staff-page " + styles.page + (isRio ? " rio-management" : "")}>
+    <div className={"wrap " + styles.container}>
       {isRio && <RioDashboardBrand area={area} />}
       <DashboardNav area={area} current="orders" />
       <section className={styles.head}>
