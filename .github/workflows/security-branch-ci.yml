@@ -41,6 +41,8 @@ jobs:
         run: node --test scripts/login-reliability.test.mjs
       - name: Check management analytics permissions and chart contracts
         run: node --test scripts/management-analytics-contract.test.mjs
+      - name: Verify staff password-only role-based security contracts
+        run: node --test scripts/staff-password-login-security.test.mjs
       - run: npm run lint
       - run: npm run build
       - name: Block high-severity production dependencies

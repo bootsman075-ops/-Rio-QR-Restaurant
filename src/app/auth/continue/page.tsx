@@ -8,12 +8,11 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 /**
- * Continue a completed MFA login to the dashboard for the verified account.
- * This is never an authorization shortcut: getStaffContext validates the
- * session's AAL2 assurance and checks the active tenant membership.
+ * Route verified staff password sessions to staff and completed MFA sessions
+ * to management. getStaffContext validates role, AAL and tenant membership.
  */
 export default async function ContinueLoginPage() {
-  // getStaffContext already validates the user, MFA level and membership.
+  // getStaffContext already validates the user, role-specific MFA and membership.
   // Avoid a duplicate getUser() round trip on every successful login.
   const context = await getStaffContext();
 
@@ -28,7 +27,7 @@ export default async function ContinueLoginPage() {
   }
 
   // Only the rare "no authorized role" path needs an extra Auth request
-  // to distinguish a signed-out user from an AAL2 user without a membership.
+  // to distinguish a signed-out user from an account without membership.
   const supabase = await createClient();
   const {
     data: { user },
