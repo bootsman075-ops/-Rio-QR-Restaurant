@@ -13,7 +13,7 @@ test("management and staff use one consistent branded login component", () => {
   const management = read("src/app/management/login/page.tsx");
   const staff = read("src/app/staff/login/page.tsx");
   assert.match(component, /src="\/rio-logo\.png"/);
-  assert.match(component, /Vantor Studio Restaurant Platform/);
+  assert.match(component, /Vantorstudio Restaurant Platform/);
   assert.match(management, /Management inloggen/);
   assert.match(staff, /Personeel inloggen/);
   assert.match(management, /action=\{managementLogin\}/);
