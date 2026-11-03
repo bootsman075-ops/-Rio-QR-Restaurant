@@ -1,10 +1,15 @@
+import Image from "next/image";
 import Link from "next/link";
+
+import PasswordField from "./PasswordField";
+import styles from "./LoginCard.module.css";
 
 type LoginCardProps = {
   title: string;
   subtitle: string;
   action: (formData: FormData) => Promise<void>;
   error?: string;
+  note?: string;
 };
 
 export default function LoginCard({
@@ -12,157 +17,89 @@ export default function LoginCard({
   subtitle,
   action,
   error,
+  note = "Beveiligde toegang voor geregistreerde medewerkers.",
 }: LoginCardProps) {
   const wrongCredentials = error === "credentials";
   const noAccess = error === "access";
 
   return (
-    <>
-      <style>{`
-        * {
-          box-sizing: border-box;
-        }
+    <main className={styles.page}>
+      <section className={styles.card} aria-labelledby="rio-login-title">
+        <header className={styles.brand}>
+          <Image
+            src="/rio-logo.png"
+            width={267}
+            height={127}
+            priority
+            alt="Rio Deventer — ESTA 2025"
+            className={styles.logo}
+          />
+        </header>
 
-        body {
-          margin: 0;
-          background: #f3efe5;
-          color: #171714;
-          font-family: Arial, Helvetica, sans-serif;
-        }
+        <div className={styles.content}>
+          <div className={styles.eyebrow}>
+            <span aria-hidden="true" className={styles.eyebrowLine} />
+            <span>Vantor Studio Restaurant Platform</span>
+            <span aria-hidden="true" className={styles.eyebrowLine} />
+          </div>
 
-        .login-page {
-          min-height: 100vh;
-          display: grid;
-          place-items: center;
-          padding: 24px;
-        }
+          <h1 id="rio-login-title" className={styles.heading}>{title}</h1>
+          <p className={styles.subtitle}>{subtitle}</p>
 
-        .login-card {
-          width: 100%;
-          max-width: 470px;
-          background: #fffdf8;
-          border: 1px solid rgba(23,23,20,.10);
-          border-radius: 28px;
-          padding: 38px;
-          box-shadow: 0 20px 60px rgba(0,0,0,.05);
-        }
+          <form action={action} className={styles.form}>
+            <div className={styles.fieldGroup}>
+              <label htmlFor="rio-login-email" className={styles.label}>E-mailadres</label>
+              <div className={styles.field}>
+                <svg className={styles.fieldIcon} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2.5" y="5" width="19" height="14" rx="2.4" />
+                  <path d="m3.5 7 8.5 6 8.5-6" />
+                </svg>
+                <input
+                  id="rio-login-email"
+                  name="email"
+                  type="email"
+                  placeholder="e-mailadres@restaurant.nl"
+                  autoComplete="email"
+                  inputMode="email"
+                  spellCheck={false}
+                  autoCapitalize="none"
+                  required
+                  className={styles.input}
+                />
+              </div>
+            </div>
 
-        .eyebrow {
-          margin: 0 0 14px;
-          color: #a87c36;
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: .16em;
-          text-transform: uppercase;
-        }
+            <PasswordField />
 
-        h1 {
-          margin: 0;
-          font-size: 44px;
-          font-weight: 500;
-          letter-spacing: -.04em;
-        }
-
-        .subtitle {
-          margin: 12px 0 30px;
-          color: #777267;
-          line-height: 1.5;
-        }
-
-        label {
-          display: block;
-          margin: 14px 0 8px;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        input {
-          width: 100%;
-          height: 52px;
-          padding: 0 16px;
-          border: 1px solid rgba(23,23,20,.16);
-          border-radius: 14px;
-          background: white;
-          font-size: 16px;
-          outline: none;
-        }
-
-        input:focus {
-          border-color: #a87c36;
-        }
-
-        button {
-          width: 100%;
-          height: 52px;
-          margin-top: 20px;
-          border: 0;
-          border-radius: 14px;
-          background: #171714;
-          color: white;
-          font-size: 15px;
-          font-weight: 800;
-          cursor: pointer;
-        }
-
-        button:hover {
-          opacity: .88;
-        }
-
-        .error {
-          margin: 16px 0 0;
-          padding: 12px 14px;
-          border-radius: 12px;
-          background: #fff1ef;
-          font-size: 14px;
-        }
-      `}</style>
-
-      <main className="login-page">
-        <section className="login-card">
-          <p className="eyebrow">vantorstudio Restaurant Platform</p>
-
-          <h1>{title}</h1>
-
-          <p className="subtitle">{subtitle}</p>
-
-          <form action={action}>
-            <label htmlFor="email">E-mailadres</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              autoFocus
-            />
-
-            <label htmlFor="password">Wachtwoord</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-
-            <button type="submit">Inloggen</button>
+            <button type="submit" className={styles.submit}>
+              Inloggen
+            </button>
           </form>
 
-          <Link href="/forgot-password" className="mt-5 inline-block text-sm font-bold underline underline-offset-4">
+          <Link href="/forgot-password" className={styles.forgot}>
             Wachtwoord vergeten?
           </Link>
 
-          {wrongCredentials && (
-            <p className="error">E-mailadres of wachtwoord is niet correct.</p>
-          )}
-
-          {noAccess && (
-            <p className="error">
-              Dit account is nog niet aan een restaurant of platformrol gekoppeld.
+          {(wrongCredentials || noAccess) && (
+            <p role="alert" className={styles.error}>
+              {wrongCredentials
+                ? "Inloggen is niet gelukt. Controleer je gegevens en probeer het opnieuw."
+                : "Dit account heeft geen toegang tot deze omgeving. Neem contact op met de beheerder."}
             </p>
           )}
-        </section>
-      </main>
-    </>
+
+          <div className={styles.footer}>
+            <div className={styles.footerRule}>
+              <span aria-hidden="true" />
+              <svg aria-hidden="true" viewBox="0 0 40 28" width="35" height="25" fill="none" stroke="currentColor" strokeWidth="1.3">
+                <path d="M4 21h32M9 19a11 11 0 0 1 22 0H9ZM20 6V4m-3 0h6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span aria-hidden="true" />
+            </div>
+            <p>{note}</p>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
