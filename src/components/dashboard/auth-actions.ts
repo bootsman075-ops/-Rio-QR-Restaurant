@@ -23,9 +23,9 @@ async function loginWithPassword(formData: FormData, failurePath: "/login" | "/s
     redirect(`${failurePath}?error=credentials`);
   }
 
-  // No role, tenant data or privileged page is accessed until AAL2 is proved.
-  // /security/mfa also handles first-time TOTP setup.
-  redirect("/security/mfa");
+  // The server checks the authenticated user's role. Staff proceeds at AAL1;
+  // management and platform accounts are sent to MFA by getStaffContext.
+  redirect("/auth/continue");
 }
 
 export async function dashboardLogin(formData: FormData) {

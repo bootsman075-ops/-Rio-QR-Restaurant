@@ -14,7 +14,7 @@ export default async function StaffLoginPage({
     <LoginCard
       title="Personeel inloggen"
       subtitle="Log in met het personeelsaccount van uw restaurant."
-      note="Alleen voor personeel en servicemedewerkers."
+      note="Voor personeel en servicemedewerkers · inloggen zonder verificatiecode."
       action={staffLogin}
       error={params.error}
     />

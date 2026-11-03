@@ -17,14 +17,6 @@ export type StaffContext = {
   restaurantSlug: string | null;
 };
 
-function firstRelation<T>(value: T | T[] | null | undefined): T | null {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
-
-  return value ?? null;
-}
-
 // React cache is scoped to ONE server request, never shared across users.
 // It removes repeat Auth/MFA/tenant fetches when a dashboard and its nav render.
 export const getStaffContext = cache(async function getStaffContext(): Promise<StaffContext | null> {
@@ -40,43 +32,59 @@ export const getStaffContext = cache(async function getStaffContext(): Promise<S
   const { data: assurance, error: assuranceError } =
     await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-  // Fail closed: even valid password sessions do not grant dashboard access.
-  if (assuranceError || assurance?.currentLevel !== "aal2") {
+  // Staff is explicitly allowed AAL1, but all managers, restaurant owners
+  // and platform administrators continue to require verified MFA (AAL2).
+  if (assuranceError || !assurance ||
+      (assurance.currentLevel !== "aal1" && assurance.currentLevel !== "aal2")) {
     redirect("/security/mfa");
   }
+  const hasVerifiedMfa = assurance.currentLevel === "aal2";
 
-  const { data: platformAdmin } = await supabase
-    .from("platform_admins")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (platformAdmin) {
-    return {
-      userId: user.id,
-      email: user.email ?? null,
-      role: "platform_admin",
-      restaurantId: null,
-      restaurantName: null,
-      restaurantSlug: null,
-    };
+  if (hasVerifiedMfa) {
+    const { data: platformAdmin } = await supabase
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (platformAdmin) {
+      return {
+        userId: user.id,
+        email: user.email ?? null,
+        role: "platform_admin",
+        restaurantId: null,
+        restaurantName: null,
+        restaurantSlug: null,
+      };
+    }
   }
 
+  // The read-only RLS exception only exposes the current user's OWN active
+  // membership at AAL1. Never use a privileged admin client for this check.
   const { data: membership, error: membershipError } = await supabase
     .from("user_restaurants")
-    .select("restaurant_id, role, restaurants!inner(name, slug, is_active)")
+    .select("restaurant_id, role")
     .eq("user_id", user.id)
     .eq("active", true)
     .limit(1)
     .maybeSingle();
 
-  if (membershipError || !membership) {
+  if (membershipError) return null;
+  if (!membership) {
+    if (!hasVerifiedMfa) redirect("/security/mfa");
     return null;
   }
 
-  const restaurant = firstRelation(membership.restaurants);
+  if (assurance.currentLevel !== "aal2" && membership.role !== "staff") {
+    redirect("/security/mfa");
+  }
 
-  if (!restaurant?.is_active) {
+  const { data: restaurant, error: restaurantError } = await supabase
+    .from("restaurants")
+    .select("name, slug, is_active")
+    .eq("id", membership.restaurant_id)
+    .maybeSingle();
+
+  if (restaurantError || !restaurant?.is_active) {
     return null;
   }
 

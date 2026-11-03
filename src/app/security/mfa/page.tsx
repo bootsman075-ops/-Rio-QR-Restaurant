@@ -126,8 +126,8 @@ export default function SecurityMfaPage() {
         </p>
         <h1 className="text-3xl font-semibold">Accountbeveiliging</h1>
         <p className="mt-3 text-sm leading-6 text-[#6b675e]">
-          Voor alle platform- en restaurantaccounts is een authenticator-app verplicht.
-          Logins zonder tweede factor krijgen geen toegang tot beheergegevens.
+          Voor management, restauranteigenaren en platformbeheer is een authenticator-app verplicht.
+          Personeel kan inloggen met e-mail en wachtwoord; managementgegevens blijven afgeschermd.
         </p>
 
         {!loaded ? <p className="mt-5">Beveiliging controleren...</p> : null}
