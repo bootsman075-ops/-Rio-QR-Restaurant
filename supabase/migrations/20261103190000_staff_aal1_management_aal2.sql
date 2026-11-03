@@ -230,9 +230,9 @@ begin
       'top_items','[]'::jsonb,
       'by_table',(
         select coalesce(jsonb_agg(
-          row_value - 'total_cents' || jsonb_build_object('total_cents',0)
+          staff_row.value - 'total_cents' || jsonb_build_object('total_cents',0)
         ),'[]'::jsonb)
-        from jsonb_array_elements(coalesce(v_report->'by_table','[]'::jsonb)) row_value
+        from jsonb_array_elements(coalesce(v_report->'by_table','[]'::jsonb)) as staff_row(value)
       )
     );
   end if;
