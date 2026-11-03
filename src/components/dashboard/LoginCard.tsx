@@ -39,7 +39,7 @@ export default function LoginCard({
         <div className={styles.content}>
           <div className={styles.eyebrow}>
             <span aria-hidden="true" className={styles.eyebrowLine} />
-            <span>Vantor Studio Restaurant Platform</span>
+            <span>Vantorstudio Restaurant Platform</span>
             <span aria-hidden="true" className={styles.eyebrowLine} />
           </div>
 
