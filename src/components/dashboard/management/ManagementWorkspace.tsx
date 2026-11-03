@@ -142,7 +142,14 @@ export default async function ManagementWorkspace({
       </div>
     </section>
 
-    {report ? <RevenueChart report={report} /> : null}
+    {report ? <>
+      <RevenueChart report={report} />
+      <div className={styles.statsLinkRow}>
+        <Link href="/management/statistieken">
+          Open alle statistieken, populaire gerechten en tafelinzichten
+        </Link>
+      </div>
+    </> : null}
 
     <section className={styles.workSection} aria-labelledby="worktitle">
       <div className={styles.sectionHeader}>
@@ -200,6 +207,7 @@ export default async function ManagementWorkspace({
       <Link href="/management/reserveringen"><span>02</span><strong>Reserveringen</strong><small>Planning en aankomst</small></Link>
       <Link href="/management/tafelverzoeken"><span>03</span><strong>Tafelverzoeken</strong><small>Bediening en rekeningen</small></Link>
       <Link href="/management/menu"><span>04</span><strong>Menukaart</strong><small>Prijzen en beschikbaarheid</small></Link>
+      <Link href="/management/statistieken"><span>05</span><strong>Statistieken</strong><small>Dag-, maand- en jaarcijfers</small></Link>
     </section>
     <p className={styles.disclaimer}>
       Financiële grafieken bevatten uitsluitend QR-bestellingen. Betaalde bedragen zijn handmatige managementmarkeringen

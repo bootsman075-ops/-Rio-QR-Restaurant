@@ -13,6 +13,7 @@ import {
   moveMenuItem,
   setMenuItemAvailability,
   setSectionVisibility,
+  moveSection,
 } from "./actions";
 import { requirePermissionContext } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
@@ -61,6 +62,7 @@ const SUCCESS_MESSAGES: Record<string, string> = {
 };
 
 const ERROR_MESSAGES: Record<string, string> = {
+  "volgorde-mislukt": "De categorievolgorde is niet opgeslagen. Probeer het opnieuw.",
   "categorie-niet-leeg":
     "Deze categorie bevat nog gerechten. Verplaats of verwijder die eerst, of verberg de categorie.",
 };
@@ -727,7 +729,7 @@ export default async function MenuView({ params }: { params: MenuSearchParams })
                 <div className="empty">Er zijn nog geen categorieën.</div>
               )}
 
-              {sections.map((section) => {
+              {sections.map((section, sectionIndex) => {
                 const sectionItems = items.filter((item) => item.section_id === section.id);
 
                 return (
@@ -762,6 +764,25 @@ export default async function MenuView({ params }: { params: MenuSearchParams })
                         <Link href={`${BASE_PATH}?categorie=${section.id}`} className="link-button">
                           Naam wijzigen
                         </Link>
+
+                        <form action={moveSection}>
+                          <input type="hidden" name="section_id" value={section.id} />
+                          <input type="hidden" name="direction" value="up" />
+                          <button type="submit" className="small-button light"
+                            disabled={sectionIndex === 0}
+                            aria-label={`Categorie ${section.name} omhoog`} title="Categorie omhoog">
+                            ↑
+                          </button>
+                        </form>
+                        <form action={moveSection}>
+                          <input type="hidden" name="section_id" value={section.id} />
+                          <input type="hidden" name="direction" value="down" />
+                          <button type="submit" className="small-button light"
+                            disabled={sectionIndex === sections.length - 1}
+                            aria-label={`Categorie ${section.name} omlaag`} title="Categorie omlaag">
+                            ↓
+                          </button>
+                        </form>
 
                         <form action={setSectionVisibility}>
                           <input type="hidden" name="section_id" value={section.id} />
