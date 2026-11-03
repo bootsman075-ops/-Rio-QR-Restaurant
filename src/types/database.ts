@@ -480,6 +480,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      move_menu_section: {
+        Args: { p_restaurant_id: string; p_section_id: string; p_direction: number }
+        Returns: boolean
+      }
       qr_management_analytics: {
         Args: { p_restaurant_id: string }
         Returns: Json

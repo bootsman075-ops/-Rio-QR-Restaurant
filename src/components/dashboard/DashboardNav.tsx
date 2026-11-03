@@ -4,7 +4,7 @@ import { DASHBOARD_NAV } from "./areas";
 import type { DashboardArea, DashboardSection } from "./areas";
 import { logout } from "./auth-actions";
 import { ROLE_LABELS } from "@/lib/permissions";
-import { getStaffRole } from "@/lib/staff-session";
+import { getStaffContext } from "@/lib/staff-session";
 
 type DashboardNavProps = {
   area: DashboardArea;
@@ -12,7 +12,8 @@ type DashboardNavProps = {
 };
 
 export default async function DashboardNav({ area, current }: DashboardNavProps) {
-  const role = await getStaffRole();
+  const context = await getStaffContext();
+  const role = context?.role ?? null;
 
   return (
     <>
@@ -101,7 +102,9 @@ export default async function DashboardNav({ area, current }: DashboardNavProps)
           className="staff-nav"
           aria-label={area === "management" ? "Managementmenu" : "Personeelsmenu"}
         >
-          {DASHBOARD_NAV[area].map((item) => (
+          {DASHBOARD_NAV[area].filter(
+            (item) => item.key !== "stats" || context?.restaurantSlug === "rio-deventer"
+          ).map((item) => (
             <Link
               key={item.key}
               href={item.href}

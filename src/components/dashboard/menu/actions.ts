@@ -451,6 +451,31 @@ export async function setSectionVisibility(formData: FormData) {
   redirect(`${BASE_PATH}#cat-${sectionId}`);
 }
 
+/** Reorder categories atomically; preserve all existing item/category links. */
+export async function moveSection(formData: FormData) {
+  const { supabase, restaurantId } = await getMenuContext();
+  const sectionId = text(formData, "section_id");
+  const directionText = text(formData, "direction");
+  const direction = directionText === "up" ? -1 : directionText === "down" ? 1 : null;
+
+  if (!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(sectionId) || direction === null) {
+    redirect(BASE_PATH);
+  }
+
+  const { error } = await supabase.rpc("move_menu_section", {
+    p_restaurant_id: restaurantId,
+    p_section_id: sectionId,
+    p_direction: direction,
+  });
+  if (error) {
+    console.error(error);
+    redirect(BASE_PATH + "?fout=volgorde-mislukt");
+  }
+
+  revalidateMenu();
+  redirect(BASE_PATH + "#cat-" + sectionId);
+}
+
 export async function deleteSection(formData: FormData) {
   const { supabase, restaurantId } = await getMenuContext();
 

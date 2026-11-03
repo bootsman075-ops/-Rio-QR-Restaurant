@@ -112,7 +112,8 @@ export default async function QrTablePage({ params }: PageProps) {
     .select("id, name, description, sort_order")
     .eq("restaurant_id", table.restaurant_id)
     .eq("is_visible", true)
-    .order("sort_order");
+    .order("sort_order")
+    .order("name");
 
   const { data: items } = await supabase
     .from("menu_items")
@@ -121,7 +122,8 @@ export default async function QrTablePage({ params }: PageProps) {
     )
     .eq("restaurant_id", table.restaurant_id)
     .eq("is_visible", true)
-    .order("sort_order");
+    .order("sort_order")
+    .order("name");
 
   const totalItems = items?.length ?? 0;
 
