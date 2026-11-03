@@ -13,16 +13,8 @@ export const dynamic = "force-dynamic";
  * session's AAL2 assurance and checks the active tenant membership.
  */
 export default async function ContinueLoginPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    redirect("/login");
-  }
-
+  // getStaffContext already validates the user, MFA level and membership.
+  // Avoid a duplicate getUser() round trip on every successful login.
   const context = await getStaffContext();
 
   if (context) {
@@ -35,8 +27,18 @@ export default async function ContinueLoginPage() {
     );
   }
 
-  // The user is signed in, but has no active authorized role. Explicitly
-  // explain this instead of silently looping back to the password screen.
+  // Only the rare "no authorized role" path needs an extra Auth request
+  // to distinguish a signed-out user from an AAL2 user without a membership.
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect("/login");
+  }
+
   return (
     <main className="min-h-screen bg-[#f3efe5] px-6 py-16 text-[#171714]">
       <section className="mx-auto max-w-md rounded-3xl bg-[#fffdf8] p-8 shadow-lg">

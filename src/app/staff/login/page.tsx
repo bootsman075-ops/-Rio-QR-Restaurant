@@ -1,5 +1,5 @@
 import LoginCard from "@/components/dashboard/LoginCard";
-import { dashboardLogin } from "@/components/dashboard/auth-actions";
+import { staffLogin } from "@/components/dashboard/auth-actions";
 
 type StaffLoginPageProps = {
   searchParams: Promise<{ error?: string }>;
@@ -15,7 +15,7 @@ export default async function StaffLoginPage({
       title="Personeel inloggen"
       subtitle="Log in met het personeelsaccount van uw restaurant."
       note="Alleen voor personeel en servicemedewerkers."
-      action={dashboardLogin}
+      action={staffLogin}
       error={params.error}
     />
   );
