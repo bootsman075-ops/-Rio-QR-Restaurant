@@ -17,7 +17,8 @@ const mfaMigration = read(
 
 test("platform admin is not implicitly a restaurant manager", () => {
   assert.match(permissions, /role === "platform_admin"\) \{\s*return false;/);
-  assert.match(permissions, /context\.role === "platform_admin" \? "\/platform" : "\/staff"/);
+  assert.match(permissions, /if \(context\.role === "platform_admin"\) \{\s*redirect\("\/platform"\);/);
+  assert.match(permissions, /redirect\(managementOnly\(permission\)/);
 });
 
 test("guest QR flow never uses the service-role admin client", () => {
