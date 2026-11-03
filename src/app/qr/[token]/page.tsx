@@ -1,5 +1,6 @@
 ﻿import { createClient } from "@/lib/supabase/server";
 import ServiceActions from "./ServiceActions";
+import { GuestOrderProvider, OrderAddButton, GuestCart } from "./GuestOrdering";
 import { MENU_ALLERGENS, MENU_TAGS } from "@/lib/menu";
 
 type PageProps = {
@@ -517,6 +518,7 @@ export default async function QrTablePage({ params }: PageProps) {
       `}</style>
 
       <main className="page">
+        <GuestOrderProvider token={token}>
         <header className="hero">
           <div className="hero-inner">
             <p className="eyebrow">Welkom bij</p>
@@ -558,6 +560,7 @@ export default async function QrTablePage({ params }: PageProps) {
         </nav>
 
         <ServiceActions token={token} />
+        <GuestCart />
 
         <div className="content">
           <h2 className="menu-title">Menukaart</h2>
@@ -654,6 +657,9 @@ export default async function QrTablePage({ params }: PageProps) {
                         <div className="dish-price">
                           {formatPrice(item.price_cents)}
                         </div>
+                        {item.is_available && (
+                          <OrderAddButton item={{ id: item.id, name: item.name, price_cents: item.price_cents }} />
+                        )}
                       </article>
                     ))}
                   </div>
@@ -667,6 +673,7 @@ export default async function QrTablePage({ params }: PageProps) {
           <div className="footer-line" />
           R.I.O. · Welle 20 · Deventer
         </footer>
+        </GuestOrderProvider>
       </main>
     </>
   );

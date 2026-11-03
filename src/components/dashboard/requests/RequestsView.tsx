@@ -1,6 +1,7 @@
 import LiveRefresh from "../LiveRefresh";
 import DashboardNav from "../DashboardNav";
 import RioDashboardBrand from "../RioDashboardBrand";
+import QrDashboardSummary from "../orders/QrDashboardSummary";
 import type { DashboardArea } from "../areas";
 import { markRequestHandled } from "./actions";
 import { requirePermissionContext } from "@/lib/permissions";
@@ -322,6 +323,7 @@ export default async function RequestsView({ area }: { area: DashboardArea }) {
           {context.restaurantSlug === "rio-deventer" ? <RioDashboardBrand area={area} /> : null}
           <DashboardNav area={area} current="requests" />
 
+          {context.restaurantSlug !== "rio-deventer" ? (
           <header className="top">
             <div>
               <p className="eyebrow">{context.restaurantName ?? "Restaurant"}</p>
@@ -336,7 +338,9 @@ export default async function RequestsView({ area }: { area: DashboardArea }) {
               Live dashboard
             </div>
           </header>
+          ) : null}
 
+          {area === "staff" ? <QrDashboardSummary area="staff" /> : null}
           <section className="stats">
             <div className="stat">
               <div className="stat-label">Openstaand</div>

@@ -502,3 +502,9 @@
 @media (prefers-reduced-motion: reduce) {
   .rio-management .staff-nav-link { transition: none; }
 }
+
+/* Rio-specific compact section headers: preserve reservation/menu action buttons. */
+.rio-management .top { min-height: 0; border-radius: 18px; margin-bottom: 18px; padding: 22px; }
+.rio-management .top h1 { font-size: clamp(29px, 4vw, 44px); }
+.rio-management .top .eyebrow { margin-bottom: 5px; }
+.rio-management .top::after { display:none; }

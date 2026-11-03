@@ -13,6 +13,7 @@ import {
 } from "@/lib/reservations";
 import { createClient } from "@/lib/supabase/server";
 import RioDashboardBrand from "@/components/dashboard/RioDashboardBrand";
+import QrDashboardSummary from "@/components/dashboard/orders/QrDashboardSummary";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +97,12 @@ export default async function ManagementPage() {
   const paths = DASHBOARD_PATHS.management;
 
   const modules = [
+    {
+      href: paths.orders,
+      title: "QR-bestellingen",
+      text: "Bekijk bestellingen per tafel, bestelstatussen en betaalmarkeringen.",
+      stat: null,
+    },
     {
       href: paths.requests,
       title: "Tafelverzoeken",
@@ -312,6 +319,7 @@ export default async function ManagementPage() {
           {isRio ? <RioDashboardBrand area="management" /> : null}
           <DashboardNav area="management" current="overview" />
 
+          {context.restaurantSlug !== "rio-deventer" ? (
           <header className="top">
             <p className="eyebrow">{context.restaurantName ?? "Restaurant"}</p>
             <h1>Management</h1>
@@ -320,6 +328,9 @@ export default async function ManagementPage() {
               <p className="rio-hero-slogan">Dine. Share. Stay longer. · Alles voor de dagelijkse restaurantoperatie op één plek.</p>
             ) : null}
           </header>
+          ) : null}
+
+          <QrDashboardSummary area="management" />
 
           {data ? (
             <>
