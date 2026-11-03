@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import LiveRefresh from "../LiveRefresh";
 import DashboardNav from "../DashboardNav";
+import RioDashboardBrand from "../RioDashboardBrand";
 import { DASHBOARD_PATHS } from "../areas";
 import ConfirmSubmitButton from "@/components/ui/ConfirmSubmitButton";
 import MenuItemForm from "./MenuItemForm";
@@ -613,8 +614,9 @@ export default async function MenuView({ params }: { params: MenuSearchParams })
         }
       `}</style>
 
-      <main className="staff-page">
+      <main className={`staff-page${context.restaurantSlug === "rio-deventer" ? " rio-management" : ""}`}>
         <div className="wrap">
+          {context.restaurantSlug === "rio-deventer" ? <RioDashboardBrand area="management" /> : null}
           <DashboardNav area="management" current="menu" />
 
           <header className="top">

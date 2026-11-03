@@ -89,7 +89,9 @@ test("Rio styling is tenant-scoped and does not change authorization", () => {
   const theme = read("src/app/management/rio-theme.css");
   assert.match(dashboard, /context\.restaurantSlug === "rio-deventer"/);
   assert.match(dashboard, /rio-management/);
-  assert.match(dashboard, /R<span>·<\/span>I<span>·<\/span>O/);
+  const rioHeader = read("src/components/dashboard/RioDashboardBrand.tsx");
+  assert.match(dashboard, /RioDashboardBrand/);
+  assert.match(rioHeader, /src="\/rio-logo\.png"/);
   assert.match(dashboard, /requirePermissionContext\("management\.access"\)/);
   assert.match(dashboard, /loadOverview\(context\.restaurantId\)/);
   assert.match(theme, /\.rio-management \.staff-nav-link/);

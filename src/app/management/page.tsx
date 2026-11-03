@@ -12,7 +12,7 @@ import {
   zonedToIso,
 } from "@/lib/reservations";
 import { createClient } from "@/lib/supabase/server";
-import "./rio-theme.css";
+import RioDashboardBrand from "@/components/dashboard/RioDashboardBrand";
 
 export const dynamic = "force-dynamic";
 
@@ -309,14 +309,7 @@ export default async function ManagementPage() {
 
       <main className={`staff-page${isRio ? " rio-management" : ""}`}>
         <div className="wrap">
-          {isRio ? (
-            <div className="rio-masthead">
-              <span className="rio-masthead-mark" aria-label="R.I.O. Deventer">
-                R<span>·</span>I<span>·</span>O<span>·</span>
-              </span>
-              <span className="rio-masthead-caption">Southern Europe · Deventer aan de IJssel</span>
-            </div>
-          ) : null}
+          {isRio ? <RioDashboardBrand area="management" /> : null}
           <DashboardNav area="management" current="overview" />
 
           <header className="top">

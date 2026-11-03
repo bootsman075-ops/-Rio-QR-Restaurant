@@ -278,3 +278,227 @@
   .rio-management .module { transition: none; }
   .rio-management .module:hover { transform: none; }
 }
+
+
+/* Shared RIO restaurant dashboard layer: overview, table service, bookings and menu.
+   Scoped to the verified Rio tenant by server-side restaurantSlug checks. */
+.rio-management {
+  --bg: #f5ece0;
+  --ink: #263222;
+  --muted: #6d705f;
+  --gold: #967742;
+  --paper: #fffaf2;
+  --line: rgba(38, 50, 34, .14);
+  --rio-ink: #263222;
+  --rio-olive: #43543b;
+  --rio-clay: #957643;
+  --rio-ochre: #bb9b64;
+  --rio-sand: #e8d8c0;
+  --rio-cream: #fff8ee;
+  --rio-muted: #666d5c;
+  --rio-line: rgba(38, 50, 34, .14);
+  padding-top: clamp(18px, 3vw, 34px);
+}
+
+.rio-management .rio-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px clamp(14px, 2.8vw, 27px);
+  margin-bottom: 15px;
+  border: 1px solid #2d3827;
+  border-radius: 19px;
+  background: #272d21;
+  box-shadow: 0 14px 34px rgba(41, 48, 30, .16);
+}
+.rio-management .rio-masthead-identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: clamp(10px, 2vw, 23px);
+}
+.rio-management .rio-masthead-logo {
+  display: block;
+  width: clamp(105px, 19vw, 166px);
+  height: auto;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+.rio-management .rio-masthead-intro {
+  display: grid;
+  gap: 7px;
+  padding-left: clamp(10px, 2vw, 21px);
+  border-left: 1px solid rgba(255, 248, 230, .22);
+}
+.rio-management .rio-masthead-overline {
+  color: #e3cd9e;
+  font: 700 11px/1.4 Arial, Helvetica, sans-serif;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.rio-management .rio-masthead-caption {
+  color: #fff8e8;
+  font: 500 clamp(15px, 2.4vw, 19px)/1.35 Georgia, "Times New Roman", serif;
+  letter-spacing: .015em;
+  text-transform: none;
+}
+.rio-management .rio-masthead-area {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 13px;
+  border: 1px solid rgba(231, 206, 157, .36);
+  border-radius: 100px;
+  color: #f5e8ce;
+  font: 700 11px/1.4 Arial, Helvetica, sans-serif;
+  letter-spacing: .075em;
+  white-space: nowrap;
+}
+.rio-management .staff-nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+  padding: 11px;
+  border: 1px solid var(--rio-line);
+  border-radius: 17px;
+  background: rgba(255, 252, 246, .9);
+  box-shadow: 0 6px 16px rgba(42, 52, 34, .04);
+}
+.rio-management .staff-nav-link {
+  padding: 11px 16px;
+  font-size: 13px;
+  border-radius: 11px;
+  transition: background .15s ease, border-color .15s ease;
+}
+.rio-management .staff-nav-link[aria-current="page"] {
+  color: #fffaf1;
+  background: #293923;
+  border-color: #293923;
+}
+.rio-management .staff-role {
+  color: #46543d;
+  background: #f2e7d6;
+}
+.rio-management .staff-role strong { color: #283b27; }
+.rio-management .staff-logout {
+  background: transparent;
+  border-color: #c3b08b;
+}
+.rio-management .top {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 29px;
+  background: linear-gradient(111deg, #263524 0%, #354531 60%, #4f5d45 100%);
+}
+.rio-management .top h1 {
+  margin: 0;
+  color: #fffaf0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 5vw, 64px);
+  font-weight: 500;
+  letter-spacing: -.035em;
+}
+.rio-management .top .subtitle { max-width: 710px; line-height: 1.6; }
+.rio-management .top .live {
+  position: relative;
+  z-index: 1;
+  background: #e8d1a3;
+  color: #293923;
+}
+.rio-management .top .primary-button,
+.rio-management .top .link-button {
+  position: relative;
+  z-index: 1;
+  border: 1px solid #dcc397;
+  background: #f4e4c6;
+  color: #293923;
+}
+.rio-management .section-title { color: #4e5f42; }
+.rio-management .stat {
+  border-color: var(--rio-line);
+  background: #fffcf6;
+  box-shadow: 0 9px 28px rgba(48, 54, 40, .06);
+}
+.rio-management .stat::before { background: #a8874e; }
+.rio-management .stat-label,
+.rio-management .stat-note { color: #62695a; }
+.rio-management .stat-value { color: #263622; }
+.rio-management :is(.request, .reservation, .menu-section, .res-form, .edit-panel, .toolbar, .empty, .warning) {
+  border-color: var(--rio-line);
+  background: #fffbf4;
+  box-shadow: 0 7px 22px rgba(42, 52, 32, .045);
+}
+.rio-management :is(.request, .reservation, .menu-section) {
+  border-radius: 19px;
+}
+.rio-management :is(.request-title, .reservation-title, .section-head h2, .item-name) {
+  color: #293923;
+}
+.rio-management :is(.icon, .time-block, .primary-button, .small-button:not(.danger):not(.light), .handled-button) {
+  background: #293923;
+  color: #fffaf0;
+}
+.rio-management :is(.item, .res-form, .edit-panel) {
+  border-color: #dbcbb1;
+}
+.rio-management .item { background: #fffdf8; }
+.rio-management :is(.request-meta, .reservation-meta, .section-meta, .item-description, .item-info) {
+  color: #646e5f;
+}
+.rio-management :is(.field input, .field select, .field textarea, .status-form select) {
+  border-color: #d9c8a9;
+  color: #253425;
+  background: #fffdf9;
+}
+.rio-management :is(.field input, .field select, .field textarea, .status-form select):focus-visible,
+.rio-management :is(a, button):focus-visible {
+  outline: 3px solid #b48e50;
+  outline-offset: 3px;
+}
+.rio-management .item-price { color: #394a30; }
+.rio-management .handled-button:hover,
+.rio-management .primary-button:hover,
+.rio-management .small-button:not(.danger):hover {
+  background: #405436;
+  color: #fffaf1;
+  opacity: 1;
+}
+.rio-management .badge-confirmed { color: #214b64; background: #deedf5; }
+.rio-management .badge-seated { color: #285c33; background: #e2f1e0; }
+.rio-management .badge-pending { color: #755013; background: #f9edcf; }
+.rio-management .badge-cancelled,
+.rio-management .badge-no_show { color: #8c3c2c; background: #f9e4dc; }
+.rio-management .live-dot { background: #54a56c; }
+.rio-management .notice { background: #eff4e8; border-color: #b8caa6; }
+.rio-management .notice-error { background: #fff1ed; border-color: #ddb09b; }
+.rio-management .future { background: #fffaf2; border-color: #d3bf9a; }
+
+@media (max-width: 700px) {
+  .rio-management .rio-masthead { padding: 12px 15px; border-radius: 16px; }
+  .rio-management .rio-masthead-logo { width: 118px; }
+  .rio-management .rio-masthead-area { font-size: 10px; }
+  .rio-management .staff-nav-bar { align-items: stretch; }
+  .rio-management .staff-nav { flex: 1 1 100%; gap: 6px; }
+  .rio-management .staff-nav-link { padding: 10px 12px; }
+  .rio-management .staff-session { justify-content: space-between; flex-wrap: wrap; }
+  .rio-management .top { padding: 27px 22px; }
+  .rio-management .top::after { pointer-events: none; }
+  .rio-management .request { gap: 12px; }
+  .rio-management .request-actions { flex-wrap: wrap; }
+  .rio-management .reservation-actions { justify-items: start; }
+}
+@media (max-width: 420px) {
+  .rio-management .rio-masthead-intro { display: none; }
+  .rio-management .rio-masthead-area { white-space: normal; }
+  .rio-management .staff-role { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rio-management .staff-nav-link { transition: none; }
+}

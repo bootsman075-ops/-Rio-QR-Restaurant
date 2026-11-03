@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import LiveRefresh from "../LiveRefresh";
 import DashboardNav from "../DashboardNav";
+import RioDashboardBrand from "../RioDashboardBrand";
 import { DASHBOARD_PATHS } from "../areas";
 import type { DashboardArea } from "../areas";
 import ReservationForm from "./ReservationForm";
@@ -631,8 +632,9 @@ export default async function ReservationsView({ area, role, params }: Reservati
         }
       `}</style>
 
-      <main className="staff-page">
+      <main className={`staff-page${context.restaurantSlug === "rio-deventer" ? " rio-management" : ""}`}>
         <div className="wrap">
+          {context.restaurantSlug === "rio-deventer" ? <RioDashboardBrand area={area} /> : null}
           <DashboardNav area={area} current="reservations" />
 
           <header className="top">
