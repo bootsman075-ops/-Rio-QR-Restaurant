@@ -32,8 +32,17 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const { data: orderUpdates } = await supabase
+    .from("qr_orders")
+    .select("id, updated_at")
+    .eq("restaurant_id", context.restaurantId)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
   return NextResponse.json({
     count: data?.length ?? 0,
     latestId: data?.[0]?.id ?? null,
-  });
+    latestOrderChange: orderUpdates?.[0]?.updated_at ?? null,
+    latestOrderId: orderUpdates?.[0]?.id ?? null,
+  }, { headers: { "Cache-Control": "no-store" } });
 }

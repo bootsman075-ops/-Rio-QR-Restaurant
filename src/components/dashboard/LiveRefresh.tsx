@@ -44,6 +44,7 @@ export default function LiveRefresh() {
   const soundEnabledRef = useRef(false);
   const latestIdRef = useRef<string | null | undefined>(undefined);
   const countRef = useRef<number | undefined>(undefined);
+  const latestOrderRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(SOUND_KEY);
@@ -71,6 +72,8 @@ export default function LiveRefresh() {
         const result = (await response.json()) as {
           count: number;
           latestId: string | null;
+          latestOrderChange?: string | null;
+          latestOrderId?: string | null;
         };
 
         // Eerste controle: alleen huidige toestand onthouden.
@@ -80,6 +83,7 @@ export default function LiveRefresh() {
         ) {
           latestIdRef.current = result.latestId;
           countRef.current = result.count;
+          latestOrderRef.current = (result.latestOrderId ?? "") + ":" + (result.latestOrderChange ?? "");
           return;
         }
 
@@ -97,9 +101,18 @@ export default function LiveRefresh() {
           }
         }
 
-        if (newRequest || countChanged) {
+        const orderKey = (result.latestOrderId ?? "") + ":" + (result.latestOrderChange ?? "");
+        const orderChanged = latestOrderRef.current !== orderKey;
+
+        if (orderChanged) {
+          setShowAlert(true);
+          if (soundEnabledRef.current) playBeep();
+        }
+
+        if (newRequest || countChanged || orderChanged) {
           router.refresh();
         }
+        latestOrderRef.current = orderKey;
 
         latestIdRef.current = result.latestId;
         countRef.current = result.count;
@@ -168,7 +181,7 @@ export default function LiveRefresh() {
             boxShadow: "0 14px 40px rgba(0,0,0,.20)",
           }}
         >
-          🔔 Nieuwe tafelmelding ontvangen
+          🔔 Nieuwe tafelmelding of QR-bestelling
         </div>
       )}
 
