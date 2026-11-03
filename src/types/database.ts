@@ -480,6 +480,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      qr_management_analytics: {
+        Args: { p_restaurant_id: string }
+        Returns: Json
+      }
       create_qr_order: {
         Args: { p_token: string; p_client_request_id: string; p_items: Json }
         Returns: Json
