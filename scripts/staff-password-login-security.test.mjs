@@ -10,21 +10,24 @@ test("staff goes through server-side role routing, not an unchecked MFA bypass",
   assert.match(a,/loginWithPassword\(formData, "\/staff\/login"\)/);
   assert.match(a,/redirect\("\/auth\/continue"\)/);
   assert.match(continued,/getStaffContext\(\)/);
-  assert.match(context,/assurance\.currentLevel !== "aal2" && membership\.role !== "staff"/);
+  assert.doesNotMatch(context,/assurance\.currentLevel !== "aal2" && membership\.role !== "staff"/);
+  assert.match(context,/if \(hasVerifiedMfa\)/);
   assert.match(context,/redirect\("\/security\/mfa"\)/);
   assert.match(context,/\.from\("user_restaurants"\)/);
   assert.match(context,/\.eq\("user_id", user\.id\)/);
   assert.doesNotMatch(context,/createAdminClient/);
 });
 
-test("management and platform admin still require AAL2",()=>{
+test("management is password-only, platform admins remain MFA-protected",()=>{
   const ctx=read("src/lib/staff-session.ts");
   const a=read("src/components/dashboard/auth-actions.ts");
   const sql=read("supabase/migrations/20261103190000_staff_aal1_management_aal2.sql");
   assert.match(ctx,/if \(hasVerifiedMfa\)/);
   assert.match(ctx,/\.from\("platform_admins"\)/);
   assert.match(a,/export async function managementLogin/);
-  assert.match(a,/redirect\("\/security\/mfa"\)/);
+  assert.doesNotMatch(a,/redirect\("\/security\/mfa"\)/);
+  assert.match(a,/redirect\("\/auth\/continue"\)/);
+  assert.match(a,/\.in\("role", \["restaurant_owner", "manager"\]\)/);
   assert.match(sql,/role in \('restaurant_owner','manager'\) and \(auth\.jwt\(\)->>'aal'\)='aal2'/);
   assert.doesNotMatch(sql,/drop policy if exists require_aal2_authenticated on public\.platform_admins/);
   assert.doesNotMatch(sql,/drop policy if exists require_aal2_authenticated on public\.menu_items/);

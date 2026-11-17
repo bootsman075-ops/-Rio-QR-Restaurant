@@ -402,6 +402,7 @@ export type Database = {
           ends_at: string | null
           guest_email: string | null
           guest_name: string
+          show_name_on_table_qr: boolean
           guest_phone: string | null
           id: string
           notes: string | null
@@ -417,6 +418,7 @@ export type Database = {
           ends_at?: string | null
           guest_email?: string | null
           guest_name: string
+          show_name_on_table_qr?: boolean
           guest_phone?: string | null
           id?: string
           notes?: string | null
@@ -432,6 +434,7 @@ export type Database = {
           ends_at?: string | null
           guest_email?: string | null
           guest_name?: string
+          show_name_on_table_qr?: boolean
           guest_phone?: string | null
           id?: string
           notes?: string | null
@@ -621,6 +624,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      resolve_qr_reservation_greeting: {
+        Args: { p_token: string }
+        Returns: string | null
+      }
+      reserve_guest_booking_quota: {
+        Args: {
+          p_restaurant_id: string
+          p_scope: string
+          p_fingerprint: string
+          p_limit: number
+        }
+        Returns: boolean
+      }
       move_menu_section: {
         Args: { p_restaurant_id: string; p_section_id: string; p_direction: number }
         Returns: boolean

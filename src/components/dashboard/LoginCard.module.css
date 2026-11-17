@@ -187,3 +187,28 @@
 @media (prefers-reduced-motion: reduce) {
   .field, .submit { transition: none; }
 }
+
+.areaSwitcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  padding: 6px;
+  margin: 23px 0 0;
+  border-radius: 15px;
+  background: #ece2d2;
+}
+.areaOption {
+  display: block;
+  padding: 12px 6px;
+  border-radius: 11px;
+  text-align: center;
+  text-decoration: none;
+  color: #5d604c;
+  font: 700 15px/1.4 Arial, Helvetica, sans-serif;
+}
+.areaOption[aria-current="page"] {
+  color: #fffaf1;
+  background: #2e3c28;
+  box-shadow: 0 4px 12px #26362222;
+}
+.areaOption:focus-visible { outline: 3px solid #9b7a45; outline-offset: 3px; }

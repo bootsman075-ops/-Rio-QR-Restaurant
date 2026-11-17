@@ -38,11 +38,12 @@ test("protected management pages use the role-bound gateway", () => {
   }
 });
 
-test("management still requires MFA and staff has no finance permissions", () => {
+test("management is password-only but management permissions remain role-bound", () => {
   const ctx = read("src/lib/staff-session.ts");
   const auth = read("src/components/dashboard/auth-actions.ts");
-  assert.match(ctx, /assurance\.currentLevel !== "aal2" && membership\.role !== "staff"/);
+  assert.doesNotMatch(ctx, /assurance\.currentLevel !== "aal2" && membership\.role !== "staff"/);
+  assert.match(ctx, /if \(hasVerifiedMfa\)/);
   assert.match(auth, /export async function managementLogin/);
-  assert.match(auth, /redirect\("\/security\/mfa"\)/);
+  assert.match(auth, /redirect\("\/auth\/continue"\)/);
   assert.match(auth, /\.in\("role", \["restaurant_owner", "manager"\]\)/);
 });

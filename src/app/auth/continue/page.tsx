@@ -11,7 +11,12 @@ export const dynamic = "force-dynamic";
  * Route verified staff password sessions to staff and completed MFA sessions
  * to management. getStaffContext validates role, AAL and tenant membership.
  */
-export default async function ContinueLoginPage() {
+export default async function ContinueLoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ omgeving?: string }>;
+}) {
+  const selectedArea = searchParams ? (await searchParams).omgeving : undefined;
   // getStaffContext already validates the user, role-specific MFA and membership.
   // Avoid a duplicate getUser() round trip on every successful login.
   const context = await getStaffContext();
@@ -20,7 +25,7 @@ export default async function ContinueLoginPage() {
     redirect(
       context.role === "platform_admin"
         ? "/platform"
-        : context.role === "staff"
+        : context.role === "staff" || selectedArea === "personeel"
           ? "/staff"
           : "/management",
     );

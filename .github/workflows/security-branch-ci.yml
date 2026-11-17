@@ -31,6 +31,8 @@ jobs:
         run: node --test scripts/auth-security-contract.test.mjs
       - name: Verify multi-tenant security contracts
         run: node --test scripts/tenant-security-contract.test.mjs
+      - name: Verify new public reservation and QR consent contracts
+        run: node --test scripts/public-reservation-contract.test.mjs
       - name: Verify Rio login layout contracts
         run: node --test scripts/rio-auth-layout.test.mjs
       - name: Verify Rio dashboard design and preserved business actions
@@ -53,12 +55,5 @@ jobs:
       - run: npm run build
       - name: Block high-severity production dependencies
         run: npm audit --omit=dev --audit-level=high
-      - name: Verify bounded development advisory exception tests
-        run: node --test scripts/check-development-audit.test.mjs
-      - name: Audit development dependencies (block new critical/high findings)
-        run: |
-          # npm exits nonzero for advisories. Preserve the JSON report, then
-          # enforce the EXACT known GHSA and transitive dependency chain.
-          # Unknown advisories, malformed reports and expired exceptions fail.
-          npm audit --json --audit-level=high > "$RUNNER_TEMP/rio-audit.json" || true
-          node scripts/check-development-audit.mjs "$RUNNER_TEMP/rio-audit.json"
+      - name: Strictly audit all dependencies including development tooling
+        run: npm audit --audit-level=high
