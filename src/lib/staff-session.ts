@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Enums } from "@/types/database";
 
 export type RestaurantRole = Enums<"restaurant_user_role">;
@@ -34,11 +35,19 @@ export async function getStaffContext(): Promise<StaffContext | null> {
     return null;
   }
 
-  const { data: platformAdmin } = await supabase
+  // Platform admins must be identified BEFORE the AAL2 check. Because
+  // platform_admins has AAL2 RLS, using the user's AAL1 client here would
+  // otherwise misclassify administrators as unprivileged accounts.
+  // The service client is server-only and this lookup is tied to getUser().
+  const admin = createAdminClient();
+  const { data: platformAdmin, error: platformAdminError } = await admin
     .from("platform_admins")
     .select("user_id")
     .eq("user_id", user.id)
     .maybeSingle();
+  if (platformAdminError) {
+    return null;
+  }
 
   if (platformAdmin) {
     // Platform-wide administrators keep MFA. Restaurant staff/management can
