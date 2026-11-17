@@ -1,0 +1,244 @@
+.rio-booking {
+  --espresso: #26170f;
+  --cacao: #3a281b;
+  --champagne: #dfc9ad;
+  --cream: #f9eee1;
+  --warm-ink: #2d211b;
+  --quiet: #74685e;
+  min-height: 100vh;
+  color: var(--warm-ink);
+  font-family: Arial, Helvetica, sans-serif;
+  background: #231910;
+}
+.rio-booking * { box-sizing: border-box; }
+.rio-booking-scene {
+  min-height: 100vh;
+  padding: clamp(24px, 5vw, 70px) 18px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(ellipse 48% 54% at 16% 8%, #76502c55, transparent 82%),
+    radial-gradient(ellipse 55% 50% at 90% 78%, #a2683550, transparent 80%),
+    linear-gradient(140deg,#24180f,#57402b 46%,#271911);
+}
+.rio-booking-shell {
+  width: min(100%, 470px);
+  background: var(--cream);
+  border: 1px solid rgba(238,213,180,.22);
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 30px 95px rgba(10,7,4,.38), 0 0 0 7px rgba(234,208,176,.04);
+}
+.rio-booking-hero {
+  min-height: 435px;
+  padding: 29px 33px 33px;
+  display: flex;
+  flex-direction: column;
+  background-color: #322013;
+  background-size: cover;
+  background-position: center 39%;
+  color: #fdf2e5;
+}
+.rio-booking-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+.rio-booking-brand-line { width: 38px; height: 1px; background: rgba(237,204,153,.7); }
+.rio-booking-logo {
+  font: 400 27px/1.2 Georgia,"Times New Roman",serif;
+  letter-spacing: .08em;
+  color: #efd9b9;
+}
+.rio-booking-hero-copy { margin-top: auto; max-width: 365px; }
+.rio-booking-eyebrow {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 10px;
+  color: #ead1af;
+}
+.rio-booking-hero h1 {
+  margin: 0;
+  font: 400 clamp(45px, 9vw, 59px)/.99 Georgia,"Times New Roman",serif;
+  letter-spacing: -.042em;
+}
+.rio-booking-title-rule { height: 1px; width: 42px; background: #c7a073; margin: 19px 0; }
+.rio-booking-hero-copy > p:last-child {
+  margin: 0;
+  max-width: 315px;
+  color: #f3e1cc;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.rio-booking-panel {
+  position: relative;
+  margin-top: -15px;
+  padding: 27px 31px 26px;
+  background: linear-gradient(180deg,#faefe3 0%,#f2dfcc 100%);
+  border-radius: 20px 20px 0 0;
+}
+.rio-booking-progress { display: flex; align-items: center; gap: 15px; margin-bottom: 26px; }
+.rio-booking-progress span {
+  color: #9b8978;
+  font-size: 11px;
+  white-space: nowrap;
+  letter-spacing: .08em;
+}
+.rio-booking-progress span strong { font-weight: 600; letter-spacing: 0; font-size: 12px; }
+.rio-booking-progress span.active { color: #412b1d; }
+.rio-booking-progress span.complete { color: #5b6548; }
+.rio-booking-progress .rio-booking-progress-rule {
+  flex: 1;
+  height: 1px;
+  min-width: 10px;
+  background: #cfbba6;
+}
+.rio-booking-form { display: flex; flex-direction: column; gap: 16px; }
+.rio-booking-field { flex: 1; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.rio-booking-field > span:first-child { font-size: 13px; font-weight: 650; color: #32241b; }
+.rio-booking-field em { font-style: normal; color: #857264; font-weight: 400; }
+.rio-booking-fields-row { display: flex; gap: 14px; }
+.rio-booking-control,
+.rio-booking-text-input {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 50px;
+  background: rgba(255,250,243,.52);
+  border: 1px solid #ceb9a5;
+  border-radius: 12px;
+  color: #34261e;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.rio-booking-control { gap: 8px; padding: 0 12px; }
+.rio-booking-control svg { width: 19px; height: 19px; flex: 0 0 19px; color: #5a4432; }
+.rio-booking-control input,
+.rio-booking-control select {
+  padding: 0;
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  font: inherit;
+  font-size: 13px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  outline: 0;
+}
+.rio-booking-control select { cursor: pointer; }
+.rio-booking-control:focus-within,
+.rio-booking-text-input:focus {
+  outline: 0;
+  border-color: #845a34;
+  box-shadow: 0 0 0 3px rgba(132,90,52,.13);
+  background: #fff9f2;
+}
+.rio-booking-text-input {
+  padding: 13px 15px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.rio-booking-text-input::placeholder { color: #a48f7d; }
+textarea.rio-booking-text-input { resize: vertical; }
+.rio-booking-primary {
+  width: 100%;
+  margin-top: 8px;
+  min-height: 57px;
+  padding: 15px 18px;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(100deg,#291a13,#463022);
+  color: #f7e6d1;
+  font: 500 17px/1.2 Georgia,serif;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(43,26,13,.11);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.rio-booking-primary span { font-family: Arial,sans-serif; font-size: 22px; font-weight: 300; }
+.rio-booking-primary:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.06); box-shadow: 0 13px 25px rgba(43,26,13,.2); }
+.rio-booking-primary:disabled { opacity: .45; cursor: not-allowed; }
+.rio-booking-secondary,
+.rio-booking-back {
+  border: none;
+  padding: 7px 0;
+  background: transparent;
+  font-size: 13px;
+  color: #614932;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.rio-booking-fine { margin: 0; font-size: 11px; line-height: 1.6; color: #76685b; }
+.rio-booking-offline,
+.rio-booking-error {
+  margin: 0 0 12px;
+  padding: 13px 15px;
+  font-size: 13px;
+  border-radius: 12px;
+  background: #fff6dc;
+  border: 1px solid #cfab72;
+  line-height: 1.5;
+}
+.rio-booking-error { background: #fff0ec; border-color: #d8ada0; }
+.rio-booking-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 16px;
+  margin: 0 0 4px;
+  border: 1px solid #d4bca3;
+  border-radius: 12px;
+  background: #faead8;
+  font-size: 12px;
+}
+.rio-booking-selection span { color: #816b55; }
+.rio-booking-selection strong { font-size: 13px; font-weight: 600; }
+.rio-booking-honeypot { position: absolute; left: -9999px; height: 1px; overflow: hidden; }
+.rio-booking-result { text-align: center; padding: 12px 5px 24px; }
+.rio-booking-result h2 { font: 400 31px Georgia,serif; margin: 18px 0 12px; }
+.rio-booking-result p { font-size: 14px; line-height: 1.65; }
+.rio-booking-result-symbol {
+  display: grid;
+  place-items: center;
+  margin: 5px auto;
+  width: 54px;
+  height: 54px;
+  border: 1px solid #879575;
+  color: #4c5d37;
+  border-radius: 50%;
+  font-size: 24px;
+}
+.rio-booking-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: #f2dfcc;
+  padding: 13px 30px 20px;
+  font-size: 10px;
+  color: #826e5d;
+  border-top: 1px solid #d9c5b0;
+}
+@media (max-width: 480px) {
+  .rio-booking-scene { padding: 0; display: block; }
+  .rio-booking-shell { border-radius: 0; min-height: 100dvh; width: 100%; border: 0; }
+  .rio-booking-hero { min-height: 420px; padding: 27px 28px; }
+  .rio-booking-panel { padding: 27px 24px; }
+  .rio-booking-footer { padding: 12px 24px 24px; }
+}
+@media (max-width: 350px) {
+  .rio-booking-fields-row { flex-direction: column; }
+  .rio-booking-hero h1 { font-size: 47px; }
+  .rio-booking-progress { gap: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rio-booking * { transition: none !important; }
+  .rio-booking-primary:hover { transform: none !important; }
+}

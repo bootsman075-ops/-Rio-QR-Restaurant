@@ -31,6 +31,8 @@ jobs:
         run: node --test scripts/auth-security-contract.test.mjs
       - name: Verify multi-tenant security contracts
         run: node --test scripts/tenant-security-contract.test.mjs
+      - name: Verify public reservation contracts
+        run: node --test scripts/public-reservation-contract.test.mjs
       - run: npm run lint
       - run: npm run build
       - name: Block high-severity production dependencies

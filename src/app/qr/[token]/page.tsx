@@ -1,4 +1,5 @@
-﻿import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import ServiceActions from "./ServiceActions";
 import { MENU_ALLERGENS, MENU_TAGS } from "@/lib/menu";
 
@@ -91,7 +92,32 @@ export default async function QrTablePage({ params }: PageProps) {
             color: #6e6b63;
             line-height: 1.6;
           }
-        `}</style>
+          .rio-guest-booking-nav {
+          max-width: 1050px;
+          margin: 20px auto 6px;
+          padding: 0 20px;
+        }
+        .rio-guest-booking-nav a {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+          border-radius: 17px;
+          padding: 17px 22px;
+          background: linear-gradient(110deg, #302118, #59412e);
+          color: #f8ead8;
+          text-decoration: none;
+          font: 500 18px Georgia, serif;
+          box-shadow: 0 12px 25px rgba(42, 25, 15, .14);
+          transition: transform .18s ease;
+        }
+        .rio-guest-booking-nav a:hover { transform: translateY(-2px); }
+        .rio-guest-booking-nav a:focus-visible { outline: 3px solid #be8f57; outline-offset: 3px; }
+        @media (prefers-reduced-motion: reduce) {
+          .rio-guest-booking-nav a { transition: none; }
+          .rio-guest-booking-nav a:hover { transform: none; }
+        }
+      `}</style>
 
         <main className="invalid-wrap">
           <div className="invalid-card">
@@ -558,6 +584,14 @@ export default async function QrTablePage({ params }: PageProps) {
         </nav>
 
         <ServiceActions token={token} />
+        {table.restaurant_slug === "rio-deventer" ? (
+          <div className="rio-guest-booking-nav">
+            <Link href={"/reserveren/" + table.restaurant_slug}>
+              Reserveer alvast je volgende bezoek <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        ) : null}
+
 
         <div className="content">
           <h2 className="menu-title">Menukaart</h2>
