@@ -13,7 +13,7 @@ type Props = { params: Promise<{ slug: string }> };
 export const metadata: Metadata = {
   title: "Tafel reserveren bij R.I.O.",
   description: "Vraag eenvoudig een tafel aan bij R.I.O. in Deventer. Het restaurant bevestigt je aanvraag.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 // Rio is de pilot. Andere restaurant-tenants krijgen niet onbedoeld deze vormgeving.
