@@ -1,6 +1,8 @@
 "use server";
 
+import { createHmac } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 
 import { addDays, isValidDate, isValidTime, todayInZone, zonedToIso } from "@/lib/reservations";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -101,6 +103,37 @@ export async function requestPublicReservation(
         status: "sent",
         message: "We hebben voor dit tijdstip al een recente aanvraag van je ontvangen. Wacht op een reactie van het restaurant.",
       };
+    }
+
+    // Vercel overwrites x-forwarded-for, so attackers cannot supply arbitrary
+    // client IPs through the public hosting path. Never store the raw IP.
+    const requestHeaders = await headers();
+    const forwarded = requestHeaders.get("x-vercel-forwarded-for")
+      ?? requestHeaders.get("x-forwarded-for");
+    const visitorIp = forwarded?.split(",")[0]?.trim();
+    const secret = process.env.SUPABASE_SECRET_KEY;
+    if (!visitorIp || visitorIp.length > 64 || !secret) {
+      return fail("De aanvraag kan tijdelijk niet veilig worden verwerkt.");
+    }
+    const fingerprint = (kind: string, value: string) =>
+      createHmac("sha256", secret)
+        .update("rio-booking:" + kind + ":" + value)
+        .digest("hex");
+    for (const [scope, key, limit] of [
+      ["ip", fingerprint("ip", visitorIp), 15],
+      ["email", fingerprint("email", email), 3],
+    ] as const) {
+      const { data: allowed, error: rateError } = await admin.rpc(
+        "reserve_guest_booking_quota", {
+          p_restaurant_id: restaurant.id,
+          p_scope: scope,
+          p_fingerprint: key,
+          p_limit: limit,
+        },
+      );
+      if (rateError || allowed !== true) {
+        return fail("Er zijn te veel reserveringsaanvragen gedaan. Probeer het over een uur opnieuw.");
+      }
     }
 
     const { error: insertError } = await admin.from("reservations").insert({

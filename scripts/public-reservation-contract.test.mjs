@@ -60,3 +60,14 @@ test("shared login has management and staff switch without altering role enforce
   assert.match(nav, /Wissel tussen Management en Personeel/);
   assert.match(session, /platform_admin/);
 });
+
+test("public booking quota is atomic, tenant-scoped and service-role only", () => {
+  const sql = readFileSync("supabase/migrations/20261117094000_public_reservation_throttling.sql", "utf8");
+  assert.match(sql, /on conflict \(restaurant_id, scope, fingerprint\)/i);
+  assert.match(sql, /security definer/i);
+  assert.match(sql, /grant execute on function public\.reserve_guest_booking_quota\([\s\S]*?to service_role/i);
+  assert.doesNotMatch(sql, /grant execute[\s\S]*?to anon/i);
+  assert.match(action, /x-vercel-forwarded-for/);
+  assert.match(action, /createHmac\("sha256"/);
+  assert.match(action, /reserve_guest_booking_quota/);
+});

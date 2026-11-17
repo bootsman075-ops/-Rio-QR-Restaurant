@@ -392,6 +392,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      reserve_guest_booking_quota: {
+        Args: {
+          p_restaurant_id: string
+          p_scope: string
+          p_fingerprint: string
+          p_limit: number
+        }
+        Returns: boolean
+      }
       create_service_request: {
         Args: { p_request_type: string; p_token: string }
         Returns: {

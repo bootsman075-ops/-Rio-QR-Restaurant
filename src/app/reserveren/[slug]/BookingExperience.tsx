@@ -163,7 +163,7 @@ export default function BookingExperience({
                         <span aria-hidden="true">→</span>
                       </button>
                       <button className="rio-booking-secondary" type="button" onClick={() => setStep(1)}>← Terug naar datum en tijd</button>
-                      <p className="rio-booking-fine">De aanvraag wordt zichtbaar voor het restaurant. Bevestiging volgt afzonderlijk.</p>
+                      <p className="rio-booking-fine">We gebruiken je naam, e-mailadres en telefoonnummer om je aanvraag te verwerken. Alleen als je hierboven toestemming geeft, kan je voornaam tijdens je bezoek op de tafelpagina verschijnen. De aanvraag is pas definitief na bevestiging door het restaurant.</p>
                     </>
                   )}
                   {result.status === "error" && (
