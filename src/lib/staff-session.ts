@@ -32,8 +32,8 @@ export const getStaffContext = cache(async function getStaffContext(): Promise<S
   const { data: assurance, error: assuranceError } =
     await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-  // Staff is explicitly allowed AAL1, but all managers, restaurant owners
-  // and platform administrators continue to require verified MFA (AAL2).
+  // Restaurant staff, managers and owners may use AAL1. Platform
+  // administrators still require verified MFA (AAL2).
   if (assuranceError || !assurance ||
       (assurance.currentLevel !== "aal1" && assurance.currentLevel !== "aal2")) {
     redirect("/security/mfa");
@@ -74,9 +74,8 @@ export const getStaffContext = cache(async function getStaffContext(): Promise<S
     return null;
   }
 
-  if (assurance.currentLevel !== "aal2" && membership.role !== "staff") {
-    redirect("/security/mfa");
-  }
+  // Password-only restaurant access is still subject to tenant RLS and
+  // per-operation role permissions. Never infer privileges from login tabs.
 
   const { data: restaurant, error: restaurantError } = await supabase
     .from("restaurants")

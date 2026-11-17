@@ -15,6 +15,7 @@ export default async function StaffLoginPage({
       title="Personeel inloggen"
       subtitle="Log in met het personeelsaccount van uw restaurant."
       note="Voor personeel en servicemedewerkers · inloggen zonder verificatiecode."
+      selectedArea="staff"
       action={staffLogin}
       error={params.error}
     />

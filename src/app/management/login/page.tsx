@@ -14,7 +14,8 @@ export default async function ManagementLoginPage({
     <LoginCard
       title="Management inloggen"
       subtitle="Log in met het managementaccount van uw restaurant."
-      note="Gebruik je managementaccount. Ben je nog als personeel ingelogd? Log hier in met je managementgegevens om te wisselen."
+      note="Gebruik je managementaccount. Ben je nog als personeel ingelogd? Log hier in met je managementgegevens om te wisselen. Geen aparte authenticatorcode vereist."
+      selectedArea="management"
       action={managementLogin}
       error={params.error}
     />

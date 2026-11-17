@@ -18,6 +18,35 @@ export default async function DashboardNav({ area, current }: DashboardNavProps)
   return (
     <>
       <style>{`
+        .area-switch {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin: 0 0 18px;
+        }
+        .area-switch-link {
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+          min-width: 135px;
+          padding: 11px 18px;
+          border-radius: 12px;
+          border: 1px solid rgba(23,23,20,.14);
+          background: rgba(255,255,255,.7);
+          color: #34412d;
+          font-size: 13px;
+          font-weight: 800;
+          text-decoration: none;
+        }
+        .area-switch-link[aria-current="page"] {
+          background: #2e3c28;
+          color: #fffaf1;
+        }
+        .area-switch-link[aria-disabled="true"] {
+          opacity: .46;
+          cursor: not-allowed;
+        }
+        .area-switch-link:focus-visible { outline: 3px solid #9b7a45; outline-offset: 3px; }
         .staff-nav-bar {
           display: flex;
           flex-wrap: wrap;
@@ -97,6 +126,18 @@ export default async function DashboardNav({ area, current }: DashboardNavProps)
         }
       `}</style>
 
+      <nav className="area-switch" aria-label="Wissel tussen Management en Personeel">
+        {role && (role === "manager" || role === "restaurant_owner") ? (
+          <Link href="/management" className="area-switch-link" aria-current={area === "management" ? "page" : undefined}>
+            Management
+          </Link>
+        ) : (
+          <span className="area-switch-link" aria-disabled="true" title="Alleen voor managementaccounts">Management</span>
+        )}
+        <Link href="/staff" className="area-switch-link" aria-current={area === "staff" ? "page" : undefined}>
+          Personeel
+        </Link>
+      </nav>
       <div className="staff-nav-bar">
         <nav
           className="staff-nav"

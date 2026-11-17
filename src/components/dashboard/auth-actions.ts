@@ -23,8 +23,11 @@ async function loginWithPassword(formData: FormData, failurePath: "/login" | "/s
     redirect(`${failurePath}?error=credentials`);
   }
 
-  // The server checks the authenticated user's role. Staff proceeds at AAL1;
-  // management and platform accounts are sent to MFA by getStaffContext.
+  // The selected area chooses a dashboard, NOT the account's role.
+  // /auth/continue always validates the role server-side.
+  if (formData.get("area") === "staff") {
+    redirect("/auth/continue?omgeving=personeel");
+  }
   redirect("/auth/continue");
 }
 
@@ -84,5 +87,5 @@ export async function managementLogin(formData: FormData) {
     redirect("/management/login?error=access");
   }
 
-  redirect("/security/mfa");
+  redirect("/auth/continue");
 }

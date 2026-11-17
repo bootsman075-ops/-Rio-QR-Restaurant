@@ -10,6 +10,7 @@ type LoginCardProps = {
   action: (formData: FormData) => Promise<void>;
   error?: string;
   note?: string;
+  selectedArea?: "staff" | "management";
 };
 
 export default function LoginCard({
@@ -18,6 +19,7 @@ export default function LoginCard({
   action,
   error,
   note = "Beveiligde toegang voor geregistreerde medewerkers.",
+  selectedArea = "management",
 }: LoginCardProps) {
   const wrongCredentials = error === "credentials";
   const noAccess = error === "access";
@@ -43,10 +45,24 @@ export default function LoginCard({
             <span aria-hidden="true" className={styles.eyebrowLine} />
           </div>
 
+          <nav className={styles.areaSwitcher} aria-label="Kies je omgeving">
+            <Link
+              href="/login?omgeving=management"
+              className={styles.areaOption}
+              aria-current={selectedArea === "management" ? "page" : undefined}
+            >Management</Link>
+            <Link
+              href="/login?omgeving=personeel"
+              className={styles.areaOption}
+              aria-current={selectedArea === "staff" ? "page" : undefined}
+            >Personeel</Link>
+          </nav>
+
           <h1 id="rio-login-title" className={styles.heading}>{title}</h1>
           <p className={styles.subtitle}>{subtitle}</p>
 
           <form action={action} className={styles.form}>
+            <input type="hidden" name="area" value={selectedArea} />
             <div className={styles.fieldGroup}>
               <label htmlFor="rio-login-email" className={styles.label}>E-mailadres</label>
               <div className={styles.field}>
@@ -72,7 +88,7 @@ export default function LoginCard({
             <PasswordField />
 
             <button type="submit" className={styles.submit}>
-              Inloggen
+              Inloggen bij {selectedArea === "staff" ? "Personeel" : "Management"}
             </button>
           </form>
 
