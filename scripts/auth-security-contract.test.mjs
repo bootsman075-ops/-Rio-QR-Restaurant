@@ -98,3 +98,17 @@ test("Rio styling is tenant-scoped and does not change authorization", () => {
   assert.match(theme, /\.rio-management \.staff-nav-link/);
   assert.doesNotMatch(theme, /(^|\n)body\s*\{/);
 });
+
+test("restaurant AAL1 policy change preserves tenant restrictions and privileged platform MFA", () => {
+  const sql = read("supabase/migrations/20261117093000_restaurant_password_only_rls.sql");
+  const session = read("src/lib/staff-session.ts");
+  assert.match(sql, /as restrictive for all to authenticated/);
+  assert.match(sql, /public\.is_active_restaurant_member\(%I\)/);
+  assert.match(sql, /ur\.restaurant_id = p_restaurant_id/);
+  assert.match(sql, /ur\.active = true/);
+  assert.match(sql, /ur\.role in \('manager', 'restaurant_owner'\)/);
+  assert.doesNotMatch(sql, /drop policy if exists require_aal2_authenticated on public\.platform_admins/);
+  assert.match(session, /if \(platformAdmin\) \{/);
+  assert.match(session, /currentLevel !== "aal2"/);
+  assert.match(session, /createAdminClient\(\)/);
+});
