@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
@@ -70,7 +71,7 @@ export default function BookingExperience({
                 <h2>Aanvraag ontvangen</h2>
                 <p>{result.message}</p>
                 <p className="rio-booking-fine">Bewaar de gekozen datum en tijd. Er is nog geen tafel gegarandeerd.</p>
-                <a className="rio-booking-back" href="/reserveren/rio-deventer">Terug naar reserveren</a>
+                <Link className="rio-booking-back" href="/reserveren/rio-deventer">Terug naar reserveren</Link>
               </div>
             ) : (
               <>
