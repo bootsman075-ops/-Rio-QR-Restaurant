@@ -38,10 +38,10 @@ function check(report) {
   }
 }
 
-test("allows only the documented development dependency chain", () => {
+test("rejects the expired development dependency exception", () => {
   const result = check(knownAdvisory());
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stderr, /TEMPORARY EXCEPTION/);
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /expired/);
 });
 
 test("blocks any new high-severity package", () => {
@@ -63,3 +63,4 @@ test("fails closed when the audit cannot provide valid data", () => {
 test("accepts genuinely clean audit reports", () => {
   assert.equal(check({ metadata: {}, vulnerabilities: {} }).status, 0);
 });
+

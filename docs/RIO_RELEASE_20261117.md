@@ -22,3 +22,11 @@
 - Er staan nog geen eigen culinaire menu-afbeeldingen voor Rio in de database; fallback fotografie wordt gebruikt.
 - Geen praktijklogin uitgevoerd zonder gebruikerswachtwoorden. Doe een echte management/staff aanmelding en tafel-QR-scantest na publicatie.
 - Wijziging geldt voor restaurantmanagement en personeel; platformbeheerders behouden MFA.
+
+
+## Vervolgcontrole en herstel
+- De geïntegreerde release miste bijgewerkte controles; verouderde MFA-testverwachtingen zijn aangepast, bestaande rollencontroles behouden.
+- Vier databasefuncties hadden nog een AAL2-blokkade: qr_management_analytics, qr_order_report, update_qr_order en move_menu_section. Nieuwe migratie laat AAL1/AAL2 toe met dezelfde actieve restaurantkoppeling en rolgrenzen.
+- Transactietest op de database geslaagd: manager AAL1 kan rapporten lezen, betaalstatus wijzigen en categorie verplaatsen; staff kan geen managementrapport of betaalwijziging uitvoeren; toegang tot ander restaurant geweigerd. Alle testmutaties teruggedraaid.
+- QR-transactietest herhaald: bevestigde opt-in toont alleen voornaam; opt-out en pending tonen niets.
+- 64 lokale contracttests geslaagd. De complete release moet daarnaast de GitHub build/lint/audit doorlopen vóór publicatie.
