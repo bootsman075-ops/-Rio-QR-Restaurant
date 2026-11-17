@@ -1,4 +1,5 @@
-﻿import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import ServiceActions from "./ServiceActions";
 import { GuestOrderProvider, OrderAddButton, GuestCart } from "./GuestOrdering";
 import { MENU_ALLERGENS, MENU_TAGS } from "@/lib/menu";
@@ -106,6 +107,12 @@ export default async function QrTablePage({ params }: PageProps) {
       </>
     );
   }
+
+  // An anonymous QR scan reveals only the optional first name of ONE
+  // confirmed, table-assigned and time-relevant reservation.
+  const greeting = table.restaurant_slug === "rio-deventer"
+    ? (await supabase.rpc("resolve_qr_reservation_greeting", { p_token: token })).data
+    : null;
 
   const { data: sections } = await supabase
     .from("menu_sections")
@@ -517,6 +524,44 @@ export default async function QrTablePage({ params }: PageProps) {
             font-size: 13px;
           }
         }
+
+        .rio-guest-greeting {
+          max-width: 1010px;
+          margin: 18px auto 5px;
+          padding: 17px 22px;
+          border: 1px solid rgba(168, 124, 54, .26);
+          border-radius: 16px;
+          background: #fff8ec;
+          color: #342419;
+          text-align: center;
+          font: 400 22px Georgia, "Times New Roman", serif;
+        }
+        .rio-guest-greeting strong { font-weight: 700; }
+        .rio-guest-booking-nav {
+          max-width: 1050px;
+          margin: 18px auto 6px;
+          padding: 0 20px;
+        }
+        .rio-guest-booking-nav a {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          border-radius: 17px;
+          padding: 17px 22px;
+          background: linear-gradient(110deg,#302118,#59412e);
+          color: #f8ead8;
+          text-decoration: none;
+          font: 500 18px Georgia, serif;
+          box-shadow: 0 12px 25px rgba(42,25,15,.14);
+          transition: transform .18s ease;
+        }
+        .rio-guest-booking-nav a:hover { transform: translateY(-2px); }
+        .rio-guest-booking-nav a:focus-visible { outline: 3px solid #be8f57; outline-offset: 3px; }
+        @media (prefers-reduced-motion: reduce) {
+          .rio-guest-booking-nav a { transition: none; }
+          .rio-guest-booking-nav a:hover { transform: none; }
+        }
       `}</style>
 
       <main className="page">
@@ -561,8 +606,22 @@ export default async function QrTablePage({ params }: PageProps) {
           </div>
         </nav>
 
+        {greeting ? (
+          <p className="rio-guest-greeting" role="status">
+            Welkom bij R.I.O., <strong>{greeting}</strong>!
+          </p>
+        ) : null}
+
         <ServiceActions token={token} />
         <GuestCart />
+
+        {table.restaurant_slug === "rio-deventer" ? (
+          <div className="rio-guest-booking-nav">
+            <Link href={"/reserveren/" + table.restaurant_slug}>
+              Reserveer je volgende bezoek <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        ) : null}
 
         <div className="content">
           <h2 className="menu-title">Menukaart</h2>
