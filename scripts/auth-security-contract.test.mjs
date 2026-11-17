@@ -47,7 +47,7 @@ test("never delete an invited user automatically on membership insertion failure
   assert.doesNotMatch(inviteService, /admin\.auth\.admin\.deleteUser\(/);
 });
 
-test("MFA is required before privileged staff access, including a first-time login", () => {
+test("MFA remains mandatory for platform administrators and tenant roles stay server-checked", () => {
   const staff = read("src/lib/staff-session.ts");
   assert.match(staff, /currentLevel !== "aal2"/);
   assert.match(staff, /redirect\("\/security\/mfa"\)/);
@@ -73,7 +73,8 @@ test("the MFA login gateway does not bypass second-factor validation", () => {
   const authActions = read("src/components/dashboard/auth-actions.ts");
   assert.match(context, /currentLevel !== "aal2"/);
   assert.match(context, /redirect\("\/security\/mfa"\)/);
-  assert.match(authActions, /redirect\("\/security\/mfa"\)/);
+  assert.match(authActions, /redirect\("\/auth\/continue"\)/);
+  assert.doesNotMatch(authActions, /redirect\("\/security\/mfa"\)/);
 });
 
 test("reserve authenticator onboarding stays separate from successful login", () => {

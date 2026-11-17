@@ -22,7 +22,7 @@ test("management login uses only one Auth call before successful password sign i
   assert.ok(signin>=0 && signout>signin,"signOut must occur after password attempt, not before");
   assert.match(mgmt,/createAdminClient/);
   assert.match(mgmt,/redirect\("\/management\/login\?error=access"\)/);
-  assert.match(mgmt,/redirect\("\/security\/mfa"\)/);
+  assert.match(mgmt,/redirect\("\/auth\/continue"\)/);
 });
 
 test("staff password errors stay on the staff login page",()=>{
