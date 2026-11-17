@@ -170,6 +170,7 @@ export type Database = {
           ends_at: string | null
           guest_email: string | null
           guest_name: string
+          show_name_on_table_qr: boolean
           guest_phone: string | null
           id: string
           notes: string | null
@@ -185,6 +186,7 @@ export type Database = {
           ends_at?: string | null
           guest_email?: string | null
           guest_name: string
+          show_name_on_table_qr?: boolean
           guest_phone?: string | null
           id?: string
           notes?: string | null
@@ -200,6 +202,7 @@ export type Database = {
           ends_at?: string | null
           guest_email?: string | null
           guest_name?: string
+          show_name_on_table_qr?: boolean
           guest_phone?: string | null
           id?: string
           notes?: string | null
@@ -397,6 +400,10 @@ export type Database = {
           request_type: string
           status: string
         }[]
+      }
+      resolve_qr_reservation_greeting: {
+        Args: { p_token: string }
+        Returns: string | null
       }
       resolve_qr_token: {
         Args: { p_token: string }

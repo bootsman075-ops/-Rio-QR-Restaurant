@@ -42,6 +42,8 @@ export async function requestPublicReservation(
   const email = readText(formData, "guest_email").toLowerCase();
   const phone = readText(formData, "guest_phone");
   const notes = readText(formData, "notes");
+  // Must be expressly checked: first name is visible to anyone scanning the table QR.
+  const showNameOnTableQr = formData.get("show_name_on_table_qr") === "on";
 
   if (!isValidDate(date) || !isValidTime(time)) {
     return fail("Kies een geldige datum en tijd.");
@@ -104,6 +106,7 @@ export async function requestPublicReservation(
     const { error: insertError } = await admin.from("reservations").insert({
       restaurant_id: restaurant.id,
       guest_name: guestName,
+      show_name_on_table_qr: showNameOnTableQr,
       guest_email: email,
       guest_phone: phone,
       party_size: partySize,

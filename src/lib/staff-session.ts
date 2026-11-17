@@ -34,14 +34,6 @@ export async function getStaffContext(): Promise<StaffContext | null> {
     return null;
   }
 
-  const { data: assurance, error: assuranceError } =
-    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-
-  // Fail closed: even valid password sessions do not grant dashboard access.
-  if (assuranceError || assurance?.currentLevel !== "aal2") {
-    redirect("/security/mfa");
-  }
-
   const { data: platformAdmin } = await supabase
     .from("platform_admins")
     .select("user_id")
@@ -49,6 +41,13 @@ export async function getStaffContext(): Promise<StaffContext | null> {
     .maybeSingle();
 
   if (platformAdmin) {
+    // Platform-wide administrators keep MFA. Restaurant staff/management can
+    // sign in with their personal password without mandatory TOTP.
+    const { data: assurance, error: assuranceError } =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assuranceError || assurance?.currentLevel !== "aal2") {
+      redirect("/security/mfa");
+    }
     return {
       userId: user.id,
       email: user.email ?? null,

@@ -47,10 +47,11 @@ test("never delete an invited user automatically on membership insertion failure
   assert.doesNotMatch(inviteService, /admin\.auth\.admin\.deleteUser\(/);
 });
 
-test("MFA is required before privileged staff access, including a first-time login", () => {
+test("platform administrator requires MFA, but restaurant staff login is password-only", () => {
   const staff = read("src/lib/staff-session.ts");
-  assert.match(staff, /currentLevel !== "aal2"/);
+  assert.match(staff, /if \(platformAdmin\) \{[\s\S]*?currentLevel !== "aal2"/);
   assert.match(staff, /redirect\("\/security\/mfa"\)/);
+  assert.ok(staff.indexOf('if (platformAdmin)') < staff.indexOf("currentLevel"));
 });
 
 
@@ -68,12 +69,14 @@ test("a verified authenticator navigates directly to server-authorized dashboard
   assert.doesNotMatch(next, /createAdminClient|service_role|SUPABASE_SECRET_KEY/);
 });
 
-test("the MFA login gateway does not bypass second-factor validation", () => {
+test("login routes by role and only platform administration requires extra authentication", () => {
   const context = read("src/lib/staff-session.ts");
   const authActions = read("src/components/dashboard/auth-actions.ts");
-  assert.match(context, /currentLevel !== "aal2"/);
-  assert.match(context, /redirect\("\/security\/mfa"\)/);
-  assert.match(authActions, /redirect\("\/security\/mfa"\)/);
+  assert.match(context, /if \(platformAdmin\) \{[\s\S]*?currentLevel !== "aal2"/);
+  assert.match(authActions, /getStaffContext\(\)/);
+  assert.match(authActions, /context.role === "platform_admin"/);
+  assert.match(authActions, /context.role === "staff"/);
+  assert.doesNotMatch(authActions, /redirect\("\/security\/mfa"\)/);
 });
 
 test("reserve authenticator onboarding stays separate from successful login", () => {

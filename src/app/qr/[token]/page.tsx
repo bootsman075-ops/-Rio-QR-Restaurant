@@ -132,6 +132,13 @@ export default async function QrTablePage({ params }: PageProps) {
     );
   }
 
+  // Only a guest who explicitly opts in may be greeted by first name.
+  // The database function checks a valid token, assigned table and active
+  // reservation time window, and returns only the first name.
+  const greeting = table.restaurant_slug === "rio-deventer"
+    ? (await supabase.rpc("resolve_qr_reservation_greeting", { p_token: token })).data
+    : null;
+
   const { data: sections } = await supabase
     .from("menu_sections")
     .select("id, name, description, sort_order")
@@ -540,6 +547,18 @@ export default async function QrTablePage({ params }: PageProps) {
             font-size: 13px;
           }
         }
+        .rio-guest-greeting {
+          max-width: 1010px;
+          margin: 16px auto 4px;
+          padding: 17px 22px;
+          border: 1px solid rgba(168, 124, 54, .26);
+          border-radius: 16px;
+          background: #fff8ec;
+          color: #342419;
+          text-align: center;
+          font: 400 22px Georgia, "Times New Roman", serif;
+        }
+        .rio-guest-greeting strong { font-weight: 700; }
       `}</style>
 
       <main className="page">
@@ -582,6 +601,12 @@ export default async function QrTablePage({ params }: PageProps) {
             ))}
           </div>
         </nav>
+
+        {greeting ? (
+          <p className="rio-guest-greeting" role="status">
+            Welkom bij R.I.O., <strong>{greeting}</strong>!
+          </p>
+        ) : null}
 
         <ServiceActions token={token} />
         {table.restaurant_slug === "rio-deventer" ? (

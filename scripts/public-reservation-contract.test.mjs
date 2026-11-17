@@ -40,3 +40,23 @@ test("QR entry exposes Rio booking without affecting other tenants", () => {
   assert.match(qr, /table.restaurant_slug === "rio-deventer"/);
   assert.match(qr, /reserveren\//);
 });
+
+
+test("reservation QR greeting requires explicit guest opt-in and no public reservation read", () => {
+  assert.match(action, /formData.get\("show_name_on_table_qr"\) === "on"/);
+  assert.match(action, /show_name_on_table_qr: showNameOnTableQr/);
+  assert.match(ui, /type="checkbox" name="show_name_on_table_qr"/);
+  assert.match(qr, /rpc\("resolve_qr_reservation_greeting"/);
+  assert.doesNotMatch(qr, /createAdminClient/);
+});
+
+test("shared login has management and staff switch without altering role enforcement", () => {
+  const login = readFileSync("src/components/dashboard/LoginCard.tsx", "utf8");
+  const session = readFileSync("src/lib/staff-session.ts", "utf8");
+  const nav = readFileSync("src/components/dashboard/DashboardNav.tsx", "utf8");
+  assert.match(login, /Kies je omgeving/);
+  assert.match(login, /Personeel/);
+  assert.match(login, /Management/);
+  assert.match(nav, /Wissel tussen Management en Personeel/);
+  assert.match(session, /platform_admin/);
+});

@@ -154,6 +154,10 @@ export default function BookingExperience({
                         <span>Opmerking <em>(optioneel)</em></span>
                         <textarea className="rio-booking-text-input" name="notes" rows={2} maxLength={500} placeholder="Bijzonderheden of wensen" />
                       </label>
+                      <label className="rio-booking-privacy-choice">
+                        <input type="checkbox" name="show_name_on_table_qr" />
+                        <span>Laat mijn voornaam tijdens mijn bezoek zien op de tafelpagina wanneer iemand de QR-code scant. Dit is optioneel; ook andere tafelbezoekers kunnen mijn voornaam dan zien.</span>
+                      </label>
                       <button className="rio-booking-primary" type="submit" disabled={!bookingEnabled || isPending}>
                         {isPending ? "Aanvraag versturen…" : "Reserveringsaanvraag versturen"}
                         <span aria-hidden="true">→</span>

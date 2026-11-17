@@ -7,28 +7,30 @@ import { getStaffContext } from "@/lib/staff-session";
 type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
+    omgeving?: string;
   }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const selectedArea = params.omgeving === "personeel" ? "staff" : "management";
   const context = await getStaffContext();
 
   if (context) {
     redirect(
       context.role === "platform_admin"
         ? "/platform"
-        : context.role === "staff"
+        : context.role === "staff" || selectedArea === "staff"
           ? "/staff"
           : "/management",
     );
   }
 
-  const params = await searchParams;
-
   return (
     <LoginCard
       title="Inloggen"
-      subtitle="Log in op uw restaurantomgeving. Uw rechten en restaurant worden automatisch aan uw account gekoppeld."
+      subtitle="Kies Management of Personeel en meld je aan met je eigen account."
+      selectedArea={selectedArea}
       action={dashboardLogin}
       error={params.error}
     />

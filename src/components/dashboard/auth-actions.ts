@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getStaffContext } from "@/lib/staff-session";
 
 export async function dashboardLogin(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -22,9 +23,14 @@ export async function dashboardLogin(formData: FormData) {
     redirect("/login?error=credentials");
   }
 
-  // No role, tenant data or privileged page is accessed until AAL2 is proved.
-  // /security/mfa also handles first-time TOTP setup.
-  redirect("/security/mfa");
+  // A tab selection changes navigation only, never the authenticated role.
+  // A platform administrator still passes the MFA gate in getStaffContext().
+  const preferredArea = formData.get("area") === "staff" ? "staff" : "management";
+  const context = await getStaffContext();
+  if (!context) redirect("/login?error=access");
+  if (context.role === "platform_admin") redirect("/platform");
+  if (context.role === "staff") redirect("/staff");
+  redirect(preferredArea === "staff" ? "/staff" : "/management");
 }
 
 export async function logout() {

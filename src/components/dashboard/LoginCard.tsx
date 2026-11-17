@@ -5,6 +5,7 @@ type LoginCardProps = {
   subtitle: string;
   action: (formData: FormData) => Promise<void>;
   error?: string;
+  selectedArea: "staff" | "management";
 };
 
 export default function LoginCard({
@@ -12,6 +13,7 @@ export default function LoginCard({
   subtitle,
   action,
   error,
+  selectedArea,
 }: LoginCardProps) {
   const wrongCredentials = error === "credentials";
   const noAccess = error === "access";
@@ -108,6 +110,34 @@ export default function LoginCard({
           opacity: .88;
         }
 
+        .login-switch {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
+          padding: 5px;
+          border-radius: 15px;
+          background: #f2e8d9;
+          margin: 0 0 25px;
+        }
+        .login-switch a {
+          display: block;
+          padding: 13px 7px;
+          border-radius: 11px;
+          text-align: center;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 800;
+          color: #605347;
+        }
+        .login-switch a[aria-current="page"] {
+          color: #fffdf8;
+          background: #38281b;
+          box-shadow: 0 4px 14px rgba(35,25,17,.15);
+        }
+        .login-switch a:focus-visible {
+          outline: 3px solid #a87c36;
+          outline-offset: 3px;
+        }
         .error {
           margin: 16px 0 0;
           padding: 12px 14px;
@@ -121,11 +151,17 @@ export default function LoginCard({
         <section className="login-card">
           <p className="eyebrow">vantorstudio Restaurant Platform</p>
 
+          <nav className="login-switch" aria-label="Kies je omgeving">
+            <Link href="/login?omgeving=management" aria-current={selectedArea === "management" ? "page" : undefined}>Management</Link>
+            <Link href="/login?omgeving=personeel" aria-current={selectedArea === "staff" ? "page" : undefined}>Personeel</Link>
+          </nav>
+
           <h1>{title}</h1>
 
           <p className="subtitle">{subtitle}</p>
 
           <form action={action}>
+            <input type="hidden" name="area" value={selectedArea} />
             <label htmlFor="email">E-mailadres</label>
             <input
               id="email"
@@ -145,7 +181,7 @@ export default function LoginCard({
               required
             />
 
-            <button type="submit">Inloggen</button>
+            <button type="submit">Inloggen bij {selectedArea === "staff" ? "Personeel" : "Management"}</button>
           </form>
 
           <Link href="/forgot-password" className="mt-5 inline-block text-sm font-bold underline underline-offset-4">

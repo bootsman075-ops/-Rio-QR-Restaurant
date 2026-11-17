@@ -242,3 +242,24 @@ textarea.rio-booking-text-input { resize: vertical; }
   .rio-booking * { transition: none !important; }
   .rio-booking-primary:hover { transform: none !important; }
 }
+
+.rio-booking-privacy-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #d6c2ae;
+  border-radius: 12px;
+  background: rgba(255, 250, 243, .65);
+  color: #65503e;
+  font-size: 12px;
+  line-height: 1.55;
+  cursor: pointer;
+}
+.rio-booking-privacy-choice input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: #423024;
+}
